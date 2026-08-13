@@ -17,8 +17,12 @@ include(FetchContent)
 set(SDL_SHARED ON CACHE BOOL "" FORCE)
 set(SDL_STATIC OFF CACHE BOOL "" FORCE)
 set(SDL_TEST OFF CACHE BOOL "" FORCE)
-set(SDLIMAGE_AVIF OFF)
-set(SDLTTF_VENDORED ON CACHE BOOL "" FORCE)
+# The SDL2 satellite libraries prefix their options with SDL2, the SDL3
+# ones drop the digit. Using the SDL3 spelling here left AVIF enabled, and
+# SDL_image then pulled in dav1d, which needs a NASM assembler MSVC does
+# not provide.
+set(SDL2IMAGE_AVIF OFF CACHE BOOL "" FORCE)
+set(SDL2TTF_VENDORED ON CACHE BOOL "" FORCE)
 if(MINGW)
     add_compile_options(-Wa,-mbig-obj)
 endif()
@@ -58,6 +62,18 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(SDL2_mixer)
+
+# This project includes the satellite headers as <SDL2/SDL_image.h>, the way
+# the distribution packages install them. FetchContent leaves them in their
+# source trees without that prefix, so a small compatibility tree is put
+# together here.
+set(SDL2_COMPAT_INCLUDE "${CMAKE_CURRENT_BINARY_DIR}/sdl2-compat-include")
+file(COPY "${sdl2_image_SOURCE_DIR}/include/SDL_image.h"
+     DESTINATION "${SDL2_COMPAT_INCLUDE}/SDL2")
+file(COPY "${sdl2_mixer_SOURCE_DIR}/include/SDL_mixer.h"
+     DESTINATION "${SDL2_COMPAT_INCLUDE}/SDL2")
+file(COPY "${sdl2_ttf_SOURCE_DIR}/SDL_ttf.h"
+     DESTINATION "${SDL2_COMPAT_INCLUDE}/SDL2")
 
 add_executable(eZeus
     audio/egodsounds.cpp
@@ -3369,6 +3385,8 @@ if(LINUX)
     target_include_directories(eZeus PRIVATE ${NOISE_INCLUDE_DIR})
     target_link_libraries(eZeus PRIVATE ${NOISE_LIBRARY})
 endif()
+
+target_include_directories(eZeus PRIVATE "${SDL2_COMPAT_INCLUDE}")
 
 target_link_libraries(eZeus PRIVATE SDL2::SDL2)
 target_link_libraries(eZeus PRIVATE SDL2_ttf::SDL2_ttf)
