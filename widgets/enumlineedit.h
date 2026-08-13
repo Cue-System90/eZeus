@@ -17,6 +17,9 @@ public:
 protected:
     bool mouseWheelEvent(const eMouseWheelEvent& e) override;
     bool keyPressEvent(const eKeyPressEvent& e) override;
+    bool acceptsInput(const std::string& character) const override;
+    bool rejectedInput(const std::string& character) override;
+    bool textInputEvent(const std::string& text) override;
 private:
     int mMin = (-__INT_MAX__ - 1);
     int mMax = __INT_MAX__;

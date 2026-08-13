@@ -13,10 +13,9 @@ eMenuLoadingWidget::eMenuLoadingWidget(eMainWindow* const window) :
     const auto& sett = window->settings();
         const bool r = eGameTextures::loadNextMenu(sett, text);
         if(r) {
-            text = "Loading music...";
+            text = eLanguage::text("loading_music");
             eMusic::loadMenu();
             eSounds::loadButtonSound();
-            eLanguage::load();
             return true;
         }
         return false;

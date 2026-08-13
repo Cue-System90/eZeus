@@ -243,6 +243,16 @@ bool eWidget::keyPress(const eKeyPressEvent& e) {
     return handler;
 }
 
+bool eWidget::textInput(const std::string& text) {
+    // text input carries no position, so it only ever goes to whatever
+    // holds the keyboard
+    eWidget* override = nullptr;
+    if(sKeyboardGrabber) override = sKeyboardGrabber;
+    else override = sLastPressed;
+    if(!override) return false;
+    return override->textInputEvent(text);
+}
+
 bool eWidget::mousePress(const eMouseEvent& e) {
     eWidget* override = nullptr;
     if(sMouseGrabber) override = sMouseGrabber;

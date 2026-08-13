@@ -476,7 +476,7 @@ void eCitySettingsWidget::initialize(const stdsptr<eWorldCity>& c,
     teamButton->align(eAlignment::hcenter);
 
     capitalButton->setUnderline(false);
-    capitalButton->setText("Capital " + playerCaptialIdToName(pid));
+    capitalButton->setText(eLanguage::text("capital") + " " + playerCaptialIdToName(pid));
     capitalButton->fitContent();
     capitalButton->setPressAction([this, c, capitalButton, playerCaptialIdToName]() {
         const auto d = new eChooseButton(window());
@@ -489,7 +489,7 @@ void eCitySettingsWidget::initialize(const stdsptr<eWorldCity>& c,
         const auto act = [c, capitalButton, playerCaptialIdToName](const int val) {
             const auto pid = static_cast<ePlayerId>(val - 1);
             c->setCapitalOf(pid);
-            capitalButton->setText("Capital " + playerCaptialIdToName(pid));
+            capitalButton->setText(eLanguage::text("capital") + " " + playerCaptialIdToName(pid));
             capitalButton->fitContent();
         };
         d->initialize(8, playerNames, act);

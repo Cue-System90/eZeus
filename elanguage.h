@@ -3,6 +3,8 @@
 
 #include "exmlparser.h"
 
+#include "elanguageid.h"
+
 class eLanguage {
 public:
     eLanguage() {}
@@ -11,6 +13,12 @@ public:
 
     static bool load();
     static bool loaded();
+    // drops everything and loads again, used after a language change
+    static void reload();
+
+    // the language of eZeus' own interface texts
+    static void setLanguage(const eLanguageId id);
+    static eLanguageId language();
 
     static const std::string& text(const std::string& key);
 
@@ -24,6 +32,7 @@ public:
 private:
     bool loadImpl();
     bool mLoaded = false;
+    eLanguageId mLanguage = eLanguageId::english;
 };
 
 #endif // ELANGUAGE_H

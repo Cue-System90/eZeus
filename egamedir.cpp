@@ -1,4 +1,5 @@
 #include "egamedir.h"
+#include "efspath.h"
 
 #include <SDL2/SDL_filesystem.h>
 #include <fstream>
@@ -8,7 +9,7 @@ std::string eGameDir::sPath;
 void eGameDir::initialize() {
     sPath = exeDir() + "../../";
     const auto zp = exeDir() + "../zeus_path.txt";
-    std::ifstream file(zp);
+    std::ifstream file(eFsPath::sPath(zp));
     if(!file.good()) return;
     std::string str;
     const bool g = !!std::getline(file, str);

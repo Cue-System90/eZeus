@@ -1,0 +1,150 @@
+; eZeus - deutsche Oberflaechentexte
+; Kodierung: UTF-8 ohne BOM
+; Fehlende Eintraege werden automatisch aus language.txt (Englisch) ergaenzt.
+
+settings "Einstellungen"
+editor "Editor"
+city_editor "Stadt-Editor"
+tribute "Tribut"
+rec_tribute "Erh. Tribut"
+choose "Wählen"
+relationship "Beziehung"
+map "Karte"
+name "Name"
+leader "Herrscher"
+
+district_resource_count_type "Bezirks-Warenmenge"
+total_resource_count_type "Gesamt-Warenmenge"
+district_population_type "Bezirksbevölkerung"
+total_population_type "Gesamtbevölkerung"
+sanctuary_ready_type "Heiligtum fertig"
+
+district_resource_count "Bezirk %1 Menge %2"
+total_resource_count "Gesamt %1 Menge %2"
+district_population "Bezirksbevölkerung %1"
+total_population "Gesamtbevölkerung %1"
+sanctuary_ready "%1-Heiligtum fertig"
+
+conditions "Bedingungen"
+
+fog_of_war "Nebel des Krieges"
+no_fog_of_war "Kein Nebel des Krieges"
+cities_on_board "Städte auf der Karte"
+resize "Größe ändern"
+width "Breite"
+height "Höhe"
+
+generate "Erzeugen"
+water "Wasser"
+forest "Wald"
+forest_to_fertile "Wald / fruchtbar"
+fertile "Fruchtbar"
+empty_dry "Leer trocken"
+scrub_dry "Gestrüpp trocken"
+flat_stones "Flache Steine"
+tall_stones "Hohe Steine"
+elevation "Erhebung"
+city "Stadt"
+
+clear "Leeren"
+
+return "Zurück"
+add_city "Stadt hinzufügen"
+water_trade "Seehandel"
+land_trade "Landhandel"
+
+none "Keine"
+
+add "Hinzufügen"
+
+gift_of_from_long_name "Geschenk: %1"
+gift_of_to "Geschenk: %1 an %2"
+god_visit "Götterbesuch"
+receive_request_long_name "Anfrage erhalten: %1 %2"
+make_request "Anfrage stellen: %1 von %2"
+invasion_by "Invasion durch %1"
+monster_attack "Monsterangriff"
+receive_tribute_from "Tribut erhalten von %1"
+god_quest "Götterauftrag"
+god_quest_fulfilled "Götterauftrag erfüllt"
+player_conquest_event_long_name "Eroberung durch Spieler"
+player_raid_event_long_name "Raubzug des Spielers"
+raid_resource_long_name "Beute aus Raubzug"
+army_returns_event_long_name "Heer kehrt zurück"
+military_change_long_name "Militärische Veränderung"
+economic_change_long_name "Wirtschaftliche Veränderung"
+god_trade_resumes_long_name "Götterhandel wird fortgesetzt"
+request_aid_long_name "Hilfe erbitten"
+request_strike_long_name "Angriff erbitten"
+rival_army_away_long_name "Feindliches Heer abwesend"
+earthquake_long_name "Erdbeben"
+tidal_wave_long_name "Flutwelle"
+supply_change_long_name "Angebotsänderung: %1, %2"
+supply_change_short_name "Angebotsänderung"
+demand_change_long_name "Nachfrageänderung: %1, %2"
+demand_change_short_name "Nachfrageänderung"
+price_change_long_name "Preisänderung: %1"
+price_change_short_name "Preisänderung"
+wage_change "Lohnänderung"
+
+triggers "Auslöser"
+
+early "Früh"
+comply "Erfüllen"
+refuse "Ablehnen"
+too_late "Zu spät"
+lost_battle "Schlacht verloren"
+
+fulfilled_trigger "Erfüllt"
+killed_trigger "Getötet"
+base_trigger "Basis"
+
+period: "Zeitraum:"
+repeat: "Wiederholung:"
+
+hardcoded "Fest vorgegeben"
+automatic "Automatisch"
+
+pay_tribute "Tribut zahlen"
+receive_request "Anfrage erhalten"
+gift_to "Geschenk an"
+gift_from "Geschenk von"
+
+iterative "Fortlaufend"
+random "Zufällig"
+gods "Götter"
+
+resume_game "Abenteuer fortsetzen"
+
+resolution "Auflösung"
+language "Sprache"
+
+tiny_textures "Winzige Texturen"
+small_textures "Kleine Texturen"
+medium_textures "Mittlere Texturen"
+large_textures "Große Texturen"
+
+restore "Wiederherstellen"
+cancel "Abbrechen"
+close "Schließen"
+both_directions "Beide Richtungen"
+one_direction "Eine Richtung"
+
+can_accept "Kann annehmen"
+capital "Hauptstadt"
+
+greetings "Seid gegrüßt,"
+
+size_tiny "winzige"
+size_small "kleine"
+size_medium "mittlere"
+size_large "große"
+
+loading_terrain_textures "Lade %1 Geländetexturen..."
+loading_building_textures "Lade %1 Gebäudetexturen..."
+loading_interface_textures "Lade %1 Oberflächentexturen..."
+loading_music "Lade Musik..."
+loading_sounds "Lade Geräusche..."
+loading_blueprints "Lade Baupläne..."
+loading_messages "Lade Meldungen..."
+loading_finished "Fertig"

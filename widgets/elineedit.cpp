@@ -1,7 +1,5 @@
 #include "elineedit.h"
 
-#include <algorithm>
-
 eLineEdit::eLineEdit(eMainWindow* const window) :
     eFramedLabel(window) {
     setType(eFrameType::inner);
@@ -34,98 +32,56 @@ bool eLineEdit::mouseLeaveEvent(const eMouseEvent& e) {
 }
 
 bool eLineEdit::keyPressEvent(const eKeyPressEvent& e) {
+    // characters arrive through textInputEvent, a key press only has to
+    // deal with editing keys
     const auto k = e.key();
+    if(k != SDL_Scancode::SDL_SCANCODE_BACKSPACE) return false;
     auto txt = text();
-    if(k == SDL_Scancode::SDL_SCANCODE_BACKSPACE) {
-        if(txt.empty()) return true;
+    if(txt.empty()) return true;
+    // drop a whole UTF-8 character, not a single byte, or a deleted umlaut
+    // would leave a stray continuation byte behind
+    do {
         txt.pop_back();
-        setText(txt);
-        if(mChangeAction) mChangeAction();
-        return true;
-    }
-    std::string add;
-    if(k == SDL_Scancode::SDL_SCANCODE_0) {
-        add = "0";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_1) {
-        add = "1";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_2) {
-        add = "2";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_3) {
-        add = "3";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_4) {
-        add = "4";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_5) {
-        add = "5";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_6) {
-        add = "6";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_7) {
-        add = "7";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_8) {
-        add = "8";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_9) {
-        add = "9";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_A) {
-        add = "a";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_B) {
-        add = "b";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_C) {
-        add = "c";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_D) {
-        add = "d";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_E) {
-        add = "e";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_F) {
-        add = "f";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_G) {
-        add = "g";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_H) {
-        add = "h";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_I) {
-        add = "i";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_J) {
-        add = "j";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_K) {
-        add = "k";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_L) {
-        add = "l";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_M) {
-        add = "m";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_N) {
-        add = "n";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_O) {
-        add = "o";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_P) {
-        add = "p";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_R) {
-        add = "r";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_S) {
-        add = "s";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_T) {
-        add = "t";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_U) {
-        add = "u";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_V) {
-        add = "v";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_W) {
-        add = "w";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_X) {
-        add = "x";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_Y) {
-        add = "y";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_Z) {
-        add = "z";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_MINUS) {
-        add = "-";
-    } else if(k == SDL_Scancode::SDL_SCANCODE_SPACE) {
-        add = " ";
-    } else {
-        return false;
-    }
-    if(e.shiftPressed()) {
-        std::transform(add.begin(), add.end(), add.begin(), ::toupper);
-    }
-    setText(txt + add);
+    } while(!txt.empty() &&
+            (static_cast<unsigned char>(txt.back()) & 0xC0) == 0x80);
+    setText(txt);
     if(mChangeAction) mChangeAction();
+    return true;
+}
+
+bool eLineEdit::acceptsInput(const std::string& character) const {
+    (void)character;
+    return true;
+}
+
+bool eLineEdit::rejectedInput(const std::string& character) {
+    (void)character;
+    return false;
+}
+
+bool eLineEdit::textInputEvent(const std::string& input) {
+    bool changed = false;
+    // SDL may deliver more than one character at once, from a dead key
+    // sequence or a paste, so they are taken one character at a time
+    for(size_t i = 0; i < input.size();) {
+        const auto lead = static_cast<unsigned char>(input[i]);
+        size_t len = 1;
+        if((lead & 0xE0) == 0xC0) len = 2;
+        else if((lead & 0xF0) == 0xE0) len = 3;
+        else if((lead & 0xF8) == 0xF0) len = 4;
+        if(i + len > input.size()) break;
+        const auto character = input.substr(i, len);
+        i += len;
+        if(acceptsInput(character)) {
+            // read back every time, a rejected character may have
+            // rewritten the text on its own
+            setText(text() + character);
+            changed = true;
+        } else if(rejectedInput(character)) {
+            changed = true;
+        }
+    }
+    if(changed && mChangeAction) mChangeAction();
     return true;
 }
 

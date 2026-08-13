@@ -109,6 +109,8 @@ public:
 
     static bool load();
     static bool loaded();
+    // drops everything and loads again, used after a language change
+    static void reload();
 
     static std::string message(const std::string& key);
     static eMessageType favorMessage(const eMessageType& reason);

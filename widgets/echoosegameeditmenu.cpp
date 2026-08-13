@@ -1,4 +1,5 @@
 #include "echoosegameeditmenu.h"
+#include "efspath.h"
 
 #include "eframedwidget.h"
 #include "eframedbutton.h"
@@ -33,7 +34,7 @@ bool readPakGlossary(const std::string& filename,
     if(ext != "pak") return false;
     const auto txtFile = filename.substr(0, filename.size() - 3) + "txt";
     glossary.fPakPath = filename;
-    std::ifstream file(txtFile);
+    std::ifstream file(eFsPath::sPath(txtFile));
     ZeusFile in(filename);
     in.readVersion();
     const auto version = in.version();
@@ -81,8 +82,8 @@ void eChooseGameEditMenu::initialize(const bool editor) {
     std::vector<eCampaignGlossary> glossaries;
     {
         const auto folder = eGameDir::adventuresDir();
-        std::filesystem::create_directories(folder);
-        for(const auto& entry : fs::directory_iterator(folder)) {
+        std::filesystem::create_directories(eFsPath::sPath(folder));
+        for(const auto& entry : fs::directory_iterator(eFsPath::sPath(folder))) {
             const bool dir = entry.is_directory();
             if(!dir) continue;
             const auto path = entry.path();
@@ -96,7 +97,7 @@ void eChooseGameEditMenu::initialize(const bool editor) {
     {
         std::function<void(std::string)> procesFolder;
         procesFolder = [&](const std::string& folder) {
-            for(const auto& entry : fs::directory_iterator(folder)) {
+            for(const auto& entry : fs::directory_iterator(eFsPath::sPath(folder))) {
                 const bool dir = entry.is_directory();
                 const auto path = entry.path();
                 const std::string pathStr = path.u8string();

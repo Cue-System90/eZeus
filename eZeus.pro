@@ -361,6 +361,7 @@ SOURCES += \
         einvasionhandler.cpp \
         eiteratesquare.cpp \
         elanguage.cpp \
+        elanguageid.cpp \
         eloadtexthelper.cpp \
         emainwindow.cpp \
         emessage.cpp \
@@ -429,8 +430,10 @@ SOURCES += \
         enumbers.cpp \
         epathfindtask.cpp \
         erand.cpp \
+        efspath.cpp \
         esettings.cpp \
         estringhelpers.cpp \
+        etextencoding.cpp \
         etexture.cpp \
         etexturecollection.cpp \
         etilehelper.cpp \
@@ -1057,6 +1060,7 @@ HEADERS += \
     einvasionhandler.h \
     eiteratesquare.h \
     elanguage.h \
+    elanguageid.h \
     elimits.h \
     eloadtexthelper.h \
     emainwindow.h \
@@ -1131,9 +1135,11 @@ HEADERS += \
     eoverlay.h \
     epathfindtask.h \
     erand.h \
+    efspath.h \
     esettings.h \
     esplitbinary.h \
     estringhelpers.h \
+    etextencoding.h \
     etexture.h \
     etexturecollection.h \
     etilehelper.h \

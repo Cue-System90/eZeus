@@ -1,6 +1,8 @@
 #include "ecampaign.h"
+#include "efspath.h"
 
 #include <fstream>
+#include <vector>
 
 #include <filesystem>
 
@@ -8,6 +10,7 @@
 #include "egamedir.h"
 #include "elanguage.h"
 #include "enumbers.h"
+#include "etextencoding.h"
 
 #include <algorithm>
 
@@ -75,7 +78,7 @@ std::string eCampaign::audioFilesBasePath() const {
             const auto baseDir = eGameDir::path("Audio/Voice/Campaign/");
             name = name.substr(0, name.length() - 4);
             const auto basePath = baseDir + name + "_";
-            std::ifstream file(basePath + "A_v.mp3");
+            std::ifstream file(eFsPath::sPath(basePath + "A_v.mp3"));
             if(file.good()) return basePath;
         }
     }
@@ -84,7 +87,7 @@ std::string eCampaign::audioFilesBasePath() const {
                                       eGameDir::adventuresDir();
         const auto aDir = baseDir + mName + "/";
         const auto basePath = aDir + mName + "_";
-        std::ifstream file(basePath + "A_v.mp3");
+        std::ifstream file(eFsPath::sPath(basePath + "A_v.mp3"));
         if(file.good()) return basePath;
     }
     return "";
@@ -135,17 +138,12 @@ std::string eCampaign::adventureVictoryAudioFilePath() const {
 }
 
 bool eCampaign::sLoadStrings(const std::string& path, eMap& map) {
-    std::ifstream file(path);
-    if(!file.good()) {
-        printf("File missing %s\n", path.c_str());
-        return false;
-    }
-    std::string line;
+    std::vector<std::string> lines;
+    if(!eTextEncodings::sReadLines(path, lines)) return false;
     std::string key;
     std::string value;
-    while(std::getline(file, line)) {
+    for(const auto& line : lines) {
         if(line.empty()) continue;
-        if(line.front() == '\r') continue;
         if(line.front() == '\t') continue;
         if(line.front() == ';') continue;
         if(key.empty()) {
@@ -219,7 +217,7 @@ bool eCampaign::loadStrings() {
 }
 
 bool eCampaign::writeStrings(const std::string& path) const {
-    std::ofstream file(path);
+    std::ofstream file(eFsPath::sPath(path));
     if(!file.good()) {
         printf("File missing %s\n", path.c_str());
         return false;
@@ -269,7 +267,7 @@ void eCampaign::loadNumbers() {
                                   eGameDir::adventuresDir();
     const auto aDir = baseDir + mName + "/";
     const auto numFile = aDir + "numbers.txt";
-    std::ifstream file(numFile);
+    std::ifstream file(eFsPath::sPath(numFile));
     if(file.good()) {
         eNumbers::sLoad(numFile);
     } else {
@@ -292,7 +290,7 @@ bool eCampaign::sReadGlossary(const std::string& name,
     glossary.fComplete = map["Adventure_Complete"];
 
     const auto pakFile = aDir + name + ".epak";
-    std::ifstream file(pakFile, std::ios::in | std::ios::binary);
+    std::ifstream file(eFsPath::sPath(pakFile), std::ios::in | std::ios::binary);
     if(!file) return false;
     eReadSource source(&file);
     eReadStream src(source);
@@ -482,7 +480,7 @@ bool eCampaign::load(const std::string& name) {
     const auto aDir = baseDir + mName + "/";
 
     const auto pakFile = aDir + mName + ".epak";
-    std::ifstream file(pakFile, std::ios::in | std::ios::binary);
+    std::ifstream file(eFsPath::sPath(pakFile), std::ios::in | std::ios::binary);
     if(!file) return false;
 
     eReadSource source(&file);
@@ -511,12 +509,12 @@ bool eCampaign::load(const std::string& name) {
 bool eCampaign::save() const {
     const auto baseDir = eGameDir::adventuresDir();
     const auto aDir = baseDir + mName + "/";
-    std::filesystem::create_directories(aDir);
+    std::filesystem::create_directories(eFsPath::sPath(aDir));
     const auto txtFile = aDir + mName + ".txt";
-    if(!std::filesystem::exists(txtFile)) writeStrings(txtFile);
+    if(!std::filesystem::exists(eFsPath::sPath(txtFile))) writeStrings(txtFile);
 
     const auto pakFile = aDir + mName + ".epak";
-    std::ofstream file(pakFile, std::ios::out | std::ios::binary |
+    std::ofstream file(eFsPath::sPath(pakFile), std::ios::out | std::ios::binary |
                        std::ios::trunc);
     if(!file) return false;
     eWriteTarget target(&file);

@@ -1,4 +1,5 @@
 #include "esettingsmenu.h"
+#include "efspath.h"
 
 #include "echeckbox.h"
 #include "elabeledwidget.h"
@@ -25,7 +26,7 @@ eWidget* createTextureBox(eMainWindow* const window,
                           const std::string& text,
                           const int p,
                           const std::string& path) {
-    const bool missing = !std::filesystem::exists(path);
+    const bool missing = !std::filesystem::exists(eFsPath::sPath(path));
     const auto w = new eWidget(window);
     w->setNoPadding();
 
@@ -154,6 +155,27 @@ void eSettingsMenu::initialize(const eApplyAction& settingsA,
             fs->align(eAlignment::hcenter);
         });
         fs->align(eAlignment::hcenter);
+    }
+
+    {
+        const auto lang = new eFramedButton(window());
+        lang->setUnderline(false);
+        lang->setText(eLanguage::text("language") + ": " +
+                      eLanguageIds::sNativeName(mSettings.fLanguage));
+        lang->fitContent();
+        col1->addWidget(lang);
+
+        // the language is only switched once the settings are accepted,
+        // so the rest of this menu stays in one language while choosing
+        lang->setPressAction([this, lang]() {
+            const auto id = eLanguageIds::sNext(mSettings.fLanguage);
+            mSettings.fLanguage = id;
+            lang->setText(eLanguage::text("language") + ": " +
+                          eLanguageIds::sNativeName(id));
+            lang->fitContent();
+            lang->align(eAlignment::hcenter);
+        });
+        lang->align(eAlignment::hcenter);
     }
 
     {

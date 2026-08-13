@@ -1,11 +1,12 @@
 #include "qfile.h"
+#include "efspath.h"
 
 #include <algorithm>
 
 QFile::QFile(const std::string& filename) :
-    std::ifstream(filename, std::ios::in | std::ios::binary) {
+    std::ifstream(eFsPath::sPath(filename), std::ios::in | std::ios::binary) {
     mSize = 0;
-    std::ifstream file(filename, std::ios::binary);
+    std::ifstream file(eFsPath::sPath(filename), std::ios::binary);
 
     mSize = file.tellg();
     file.seekg(0, std::ios::end);

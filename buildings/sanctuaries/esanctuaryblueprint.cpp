@@ -1,4 +1,5 @@
 #include "esanctuaryblueprint.h"
+#include "efspath.h"
 
 #include <fstream>
 #include <regex>
@@ -84,7 +85,7 @@ bool loadLineBP(const int x,
 
 bool loadBP(eSanctBlueprint& bp,
             const std::string& path) {
-    std::ifstream file(path);
+    std::ifstream file(eFsPath::sPath(path));
     if(!file.good()) {
         printf("File missing %s\n", path.c_str());
         return false;

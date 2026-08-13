@@ -1,4 +1,5 @@
 #include "esoundvector.h"
+#include "efspath.h"
 
 #include "erand.h"
 #include <filesystem>
@@ -23,7 +24,7 @@ eSoundVector::~eSoundVector() {
 const bool sLoadOnAdd = false;
 
 void eSoundVector::addPath(const std::string& path) {
-    const bool e = std::filesystem::exists(path);
+    const bool e = std::filesystem::exists(eFsPath::sPath(path));
     if(!e) printf("Missing audio file %s\n", path.c_str());
     const auto sound = sLoadOnAdd ? loadSound(path) : nullptr;
     mPaths.push_back({sound, path});

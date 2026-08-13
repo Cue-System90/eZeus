@@ -1,4 +1,5 @@
 #include "enumbers.h"
+#include "efspath.h"
 
 #include "egamedir.h"
 #include "eloadtexthelper.h"
@@ -263,7 +264,7 @@ void eNumbers::sLoad(const std::string& path) {
     const bool write = map.empty();
 
     std::ofstream file;
-    if(write) file.open(path);
+    if(write) file.open(eFsPath::sPath(path));
 
     const auto loadI = [&](const std::string& name,
                            int& val, const int def,

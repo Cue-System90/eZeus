@@ -4,11 +4,20 @@
 
 #include "exmlparser.h"
 #include "egamedir.h"
+#include "etextencoding.h"
+
+#include <cstdio>
 
 eLanguage eLanguage::instance;
 
 const std::string& eLanguage::text(const std::string& key) {
-    return instance.fText[key];
+    static const std::string sEmpty;
+    const auto it = instance.fText.find(key);
+    if(it == instance.fText.end()) {
+        printf("Could not find text '%s'\n", key.c_str());
+        return sEmpty;
+    }
+    return it->second;
 }
 
 const std::string& eLanguage::zeusText(const int g, const int s) {
@@ -27,6 +36,25 @@ bool eLanguage::loaded() {
     return instance.mLoaded;
 }
 
+void eLanguage::reload() {
+    instance.mLoaded = false;
+    instance.fText.clear();
+    instance.fZeusText.clear();
+    instance.fZeusMM.clear();
+    instance.loadImpl();
+}
+
+void eLanguage::setLanguage(const eLanguageId id) {
+    instance.mLanguage = id;
+    // text taken straight from the original game files is stored in the
+    // code page of that language's release
+    eTextEncodings::sSetLegacyEncoding(eLanguageIds::sLegacyEncoding(id));
+}
+
+eLanguageId eLanguage::language() {
+    return instance.mLanguage;
+}
+
 bool eLanguage::loadImpl() {
     if(mLoaded) return false;
     mLoaded = true;
@@ -34,6 +62,13 @@ bool eLanguage::loadImpl() {
     eXmlParser::sParse(fZeusText, eGameDir::exeDir() + "../Zeus_Text.xml");
     eXmlParser::sParse(fZeusMM, eGameDir::exeDir() + "../Zeus_MM.xml");
 
-    const std::string path = eGameDir::exeDir() + "../Text/language.txt";
-    return eLoadTextHelper::load(path, fText);
+    // English is loaded first so that a translation may be incomplete
+    // without leaving parts of the interface blank
+    const std::string dir = eGameDir::exeDir() + "../Text/";
+    const bool r = eLoadTextHelper::load(dir + "language.txt", fText);
+    if(mLanguage != eLanguageId::english) {
+        const auto code = eLanguageIds::sCode(mLanguage);
+        eLoadTextHelper::load(dir + "language_" + code + ".txt", fText);
+    }
+    return r;
 }

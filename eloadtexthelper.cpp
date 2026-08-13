@@ -1,18 +1,15 @@
 #include "eloadtexthelper.h"
 
-#include <fstream>
 #include <algorithm>
+#include <vector>
+
+#include "etextencoding.h"
 
 bool eLoadTextHelper::load(const std::string& path, eMap& map) {
-    std::ifstream file(path);
-    if(!file.good()) {
-        printf("File missing %s\n", path.c_str());
-        return false;
-    }
-    std::string str;
-    while(std::getline(file, str)) {
+    std::vector<std::string> lines;
+    if(!eTextEncodings::sReadLines(path, lines)) return false;
+    for(const auto& str : lines) {
         if(str.empty()) continue;
-        if(str.front() == '\r') continue;
         if(str.front() == '\t') continue;
         if(str.front() == ';') {
             if(str.size() < 7) continue;
@@ -26,9 +23,11 @@ bool eLoadTextHelper::load(const std::string& path, eMap& map) {
 
         const auto valueStart = str.find('"');
         if(valueStart == std::string::npos) continue;
-        const auto valueEnd = str.find('"', valueStart + 1);
-        const auto valueLen = valueEnd - valueStart;
-        const auto value = str.substr(valueStart + 1, valueLen - 1);
+        auto valueEnd = str.find('"', valueStart + 1);
+        // an unterminated value runs to the end of the line
+        if(valueEnd == std::string::npos) valueEnd = str.size();
+        const auto value = str.substr(valueStart + 1,
+                                      valueEnd - valueStart - 1);
 
         map[key] = value;
     }

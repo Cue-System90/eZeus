@@ -1105,6 +1105,13 @@ bool eMessages::loaded() {
     return instance.mLoaded;
 }
 
+void eMessages::reload() {
+    if(!instance.mLoaded) return;
+    instance.mLoaded = false;
+    instance.fMessages.clear();
+    instance.loadImpl();
+}
+
 std::string eMessages::message(const std::string& key) {
     return instance.loadMessage(key);
 }

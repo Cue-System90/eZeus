@@ -23,20 +23,20 @@ eGameLoadingWidget::eGameLoadingWidget(eMainWindow* const window) :
                     if(r) {
                         const bool r = eMessages::loaded();
                         if(r) return true;
-                        text = "Loading messages...";
+                        text = eLanguage::text("loading_messages");
                         eMessages::load();
                         return false;
                     }
-                    text = "Loading blueprints...";
+                    text = eLanguage::text("loading_blueprints");
                     eSanctBlueprints::load();
                     return false;
                 } else {
-                    text = "Loading sounds...";
+                    text = eLanguage::text("loading_sounds");
                     eSounds::load();
                     return false;
                 }
             } else {
-                text = "Loading music...";
+                text = eLanguage::text("loading_music");
                 eMusic::load();
                 return false;
             }

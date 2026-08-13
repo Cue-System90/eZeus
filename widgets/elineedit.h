@@ -15,7 +15,14 @@ protected:
     bool mouseEnterEvent(const eMouseEvent& e);
     bool mouseLeaveEvent(const eMouseEvent& e);
     bool keyPressEvent(const eKeyPressEvent& e);
+    bool textInputEvent(const std::string& text);
     void paintEvent(ePainter& p);
+
+    // decides whether a typed character is taken, one UTF-8 character per
+    // call. Everything is accepted unless a subclass narrows it down.
+    virtual bool acceptsInput(const std::string& character) const;
+    // called for a character that acceptsInput rejected
+    virtual bool rejectedInput(const std::string& character);
 private:
     bool mHovered = false;
     bool mRenderBg = false;

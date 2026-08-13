@@ -10,7 +10,40 @@ Please note that eZeus is not an exact copy of the original game. There are some
 
 To play eZeus you will need original game files (Zeus: Master of Olympus base game and Poseidon expansion).
 
-Currently only English and Polish versions are supported due to font glyphs limitations.
+## Languages
+
+eZeus takes most of its text straight from the original game files, so the
+in-game language follows the language of your Zeus and Poseidon
+installation. Its own interface texts live in `Text/language.txt`.
+
+English, German and Polish are supported. Pick the language in the settings
+menu, or set it in `settings.txt`:
+
+```
+language "de"
+```
+
+Accepted values are `en`, `de` and `pl`. A translation may be incomplete -
+any key missing from `Text/language_<code>.txt` falls back to the English
+text in `Text/language.txt`.
+
+The original game stores its text in the ANSI code page of its release
+(Windows-1252 for the Western European versions, Windows-1250 for Polish),
+which eZeus converts to UTF-8 while loading. Detection is automatic; should
+a file be misread, the code page can be forced in `settings.txt`:
+
+```
+encoding "cp1252"
+```
+
+Accepted values are `auto` (default), `utf8`, `cp1252` and `cp1250`.
+
+### Adding a language
+
+Copy `Text/language.txt` to `Text/language_<code>.txt`, translate the values
+and save the file as UTF-8. Add the language to `elanguageid.cpp`, and make
+sure `Fonts/Zeus.ttf` covers its glyphs - the bundled font covers Western
+and Central European Latin only.
 
 Only windows binaries are provided. If you want to play on Linux you have to build eZeus yourself.
 
@@ -53,6 +86,20 @@ sudo apt install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev
 You will need Qt Creator (qt.io).
 
 Open eZeus.pro in Qt Creator and use it to build eZeus.
+
+## How To Build With CMake
+
+The CMake build fetches SDL2 and its satellite libraries itself, so no SDL
+packages have to be installed:
+
+```
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target eZeus
+```
+
+CMake 4 rejects the vendored freetype that SDL_ttf 2.24 ships, because it
+still asks for compatibility with CMake below 3.5. Until that dependency is
+updated, add `-DCMAKE_POLICY_VERSION_MINIMUM=3.5` to the configure step.
 
 Before running eZeus binary make sure to setup all files as specified in **How To Play** section and the release description. Put eZeus binary in (...)/Zeus and Poseidon/eZeus/Bin directory and run it.
 

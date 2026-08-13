@@ -2,6 +2,7 @@
 #define EWIDGET_H
 
 #include <vector>
+#include <string>
 #include <functional>
 
 #include "epainter.h"
@@ -69,6 +70,9 @@ public:
 
     void paint(ePainter& p);
     bool keyPress(const eKeyPressEvent& e);
+    // text composed by SDL from the key press, already in UTF-8 and in the
+    // layout the player actually types on
+    bool textInput(const std::string& text);
     bool mousePress(const eMouseEvent& e);
     bool mouseRelease(const eMouseEvent& e);
     bool mouseMove(const eMouseEvent& e);
@@ -125,6 +129,11 @@ protected:
 
     virtual bool keyPressEvent(const eKeyPressEvent& e) {
         (void)e;
+        return false;
+    }
+
+    virtual bool textInputEvent(const std::string& text) {
+        (void)text;
         return false;
     }
 

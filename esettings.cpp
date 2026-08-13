@@ -1,10 +1,13 @@
 #include "esettings.h"
+#include "efspath.h"
 
 #include <fstream>
 #include <iostream>
 
 #include "egamedir.h"
 #include "eloadtexthelper.h"
+#include "elanguage.h"
+#include "etextencoding.h"
 
 std::vector<eTileSize> eSettings::availableSizes() const {
     std::vector<eTileSize> sizes;
@@ -26,7 +29,7 @@ std::vector<eTileSize> eSettings::availableSizes() const {
 void eSettings::write() const {
     const auto path = eGameDir::settingsPath();
     std::ofstream file;
-    file.open(path);
+    file.open(eFsPath::sPath(path));
     file << "tiny_textures" << " " <<
             (fTinyTextures ? "\"true\"" : "\"false\"") << "\n";
     file << "small_textures" << " " <<
@@ -41,14 +44,26 @@ void eSettings::write() const {
     file << "width" << " " << "\"" << wStr << "\"" << "\n";
     const auto hStr = std::to_string(fRes.height());
     file << "height" << " " << "\"" << hStr << "\"" << "\n";
+    file << "language" << " " << "\"" <<
+            eLanguageIds::sCode(fLanguage) << "\"" << "\n";
+    file << "encoding" << " " << "\"" <<
+            eTextEncodings::sName(fEncoding) << "\"" << "\n";
     file.close();
+}
+
+void eSettings::apply() const {
+    eTextEncodings::sSetEncoding(fEncoding);
+    eLanguage::setLanguage(fLanguage);
 }
 
 void eSettings::read() {
     const auto path = eGameDir::settingsPath();
     std::map<std::string, std::string> settings;
     const bool r = eLoadTextHelper::load(path, settings);
-    if(!r) return;
+    if(!r) {
+        apply();
+        return;
+    }
     fTinyTextures = settings["tiny_textures"] == "true";
     fSmallTextures = settings["small_textures"] == "true";
     fMediumTextures = settings["medium_textures"] == "true";
@@ -61,5 +76,14 @@ void eSettings::read() {
         const int height = std::stoi(heightStr);
         fRes = eResolution(width, height);
     }
+    const auto languageStr = settings["language"];
+    if(!languageStr.empty()) {
+        fLanguage = eLanguageIds::sFromCode(languageStr);
+    }
+    const auto encodingStr = settings["encoding"];
+    if(!encodingStr.empty()) {
+        fEncoding = eTextEncodings::sFromName(encodingStr);
+    }
+    apply();
 }
 

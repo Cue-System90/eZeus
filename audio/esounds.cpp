@@ -1,6 +1,7 @@
 ﻿#include "esounds.h"
 
 #include "characters/egrower.h"
+#include "efspath.h"
 #include "characters/ehunter.h"
 #include "engine/etile.h"
 #include "buildings/ebuilding.h"
@@ -1965,7 +1966,7 @@ void eSounds::loadImpl() {
             vec.addPath(walkerDir + s);
         }
         const auto e4Path = pref + "_e_4.mp3";
-        const bool e4 = std::filesystem::exists(e4Path);
+        const bool e4 = std::filesystem::exists(eFsPath::sPath(e4Path));
         if(e4) vec.addPath(e4Path);
     };
 

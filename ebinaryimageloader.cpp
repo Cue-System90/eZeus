@@ -1,4 +1,5 @@
 #include "ebinaryimageloader.h"
+#include "efspath.h"
 
 #include <fstream>
 
@@ -32,7 +33,7 @@ std::shared_ptr<eTexture> eBinaryImageLoader::load(SDL_Renderer* const r,
         break;
     }
 
-    std::ifstream file(epath, std::ios::in | std::ios::binary);
+    std::ifstream file(eFsPath::sPath(epath), std::ios::in | std::ios::binary);
     if(!file) {
         printf("Could not open '%s'\n", epath.c_str());
         return nullptr;

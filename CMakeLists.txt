@@ -732,6 +732,8 @@ add_executable(eZeus
     eiteratesquare.h
     elanguage.cpp
     elanguage.h
+    elanguageid.cpp
+    elanguageid.h
     elimits.h
     eloadtexthelper.cpp
     eloadtexthelper.h
@@ -874,11 +876,15 @@ add_executable(eZeus
     epathfindtask.h
     erand.cpp
     erand.h
+    efspath.cpp
+    efspath.h
     esettings.cpp
     esettings.h
     esplitbinary.h
     estringhelpers.cpp
     estringhelpers.h
+    etextencoding.cpp
+    etextencoding.h
     etexture.cpp
     etexture.h
     etexturecollection.cpp

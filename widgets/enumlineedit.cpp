@@ -1,6 +1,7 @@
 #include "enumlineedit.h"
 
 #include <algorithm>
+#include <stdexcept>
 
 eNumLineEdit::eNumLineEdit(eMainWindow* const window) :
     eLineEdit(window) {
@@ -9,32 +10,40 @@ eNumLineEdit::eNumLineEdit(eMainWindow* const window) :
 
 bool eNumLineEdit::keyPressEvent(const eKeyPressEvent& e) {
     const auto k = e.key();
-    if(k == SDL_Scancode::SDL_SCANCODE_0 ||
-       k == SDL_Scancode::SDL_SCANCODE_1 ||
-       k == SDL_Scancode::SDL_SCANCODE_2 ||
-       k == SDL_Scancode::SDL_SCANCODE_3 ||
-       k == SDL_Scancode::SDL_SCANCODE_4 ||
-       k == SDL_Scancode::SDL_SCANCODE_5 ||
-       k == SDL_Scancode::SDL_SCANCODE_6 ||
-       k == SDL_Scancode::SDL_SCANCODE_7 ||
-       k == SDL_Scancode::SDL_SCANCODE_8 ||
-       k == SDL_Scancode::SDL_SCANCODE_9 ||
-       k == SDL_Scancode::SDL_SCANCODE_BACKSPACE) {
-        eLineEdit::keyPressEvent(e);
-        setValue(value());
-        return true;
-    }
-    if(k == SDL_Scancode::SDL_SCANCODE_MINUS) {
-        setValue(-value());
-        return true;
-    }
-    return false;
+    if(k != SDL_Scancode::SDL_SCANCODE_BACKSPACE) return false;
+    eLineEdit::keyPressEvent(e);
+    setValue(value());
+    return true;
+}
+
+bool eNumLineEdit::acceptsInput(const std::string& character) const {
+    if(character.size() != 1) return false;
+    return character[0] >= '0' && character[0] <= '9';
+}
+
+bool eNumLineEdit::rejectedInput(const std::string& character) {
+    // handled here rather than through a scan code, so that it also works
+    // on layouts where minus does not sit on the US key
+    if(character != "-") return false;
+    setValue(-value());
+    return true;
+}
+
+bool eNumLineEdit::textInputEvent(const std::string& text) {
+    const bool r = eLineEdit::textInputEvent(text);
+    setValue(value()); // strips leading zeros, as typing used to do
+    return r;
 }
 
 int eNumLineEdit::value() const {
     const auto str = text();
     if(str == "" || str == "-") return 0;
-    return std::stoi(str);
+    try {
+        return std::stoi(str);
+    } catch(const std::out_of_range&) {
+        // typing past the range of an int used to throw out of main
+        return str.front() == '-' ? (-__INT_MAX__ - 1) : __INT_MAX__;
+    }
 }
 
 int eNumLineEdit::clampedValue() const {

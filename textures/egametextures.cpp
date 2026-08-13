@@ -1,9 +1,12 @@
 #include "egametextures.h"
+#include "efspath.h"
 
 #include <functional>
 #include <filesystem>
 
 #include "egamedir.h"
+#include "elanguage.h"
+#include "estringhelpers.h"
 
 bool eGameTextures::sInitialized = false;
 std::vector<eTerrainTextures> eGameTextures::sTerrainTextures;
@@ -2283,7 +2286,7 @@ bool checkTextureFiles() {
     bool missing = false;
     for(const auto& f : files) {
         const auto path = eGameDir::path("DATA/" + f.fFilename);
-        const bool e = std::filesystem::exists(path);
+        const bool e = std::filesystem::exists(eFsPath::sPath(path));
         if(!e) {
             missing = true;
             printf("File missing '%s'\n", path.c_str());
@@ -2293,11 +2296,21 @@ bool checkTextureFiles() {
     return !missing;
 }
 
+static std::string loadingText(const std::string& key, const int size) {
+    static const char* const sizeKeys[] = {"size_tiny", "size_small",
+                                           "size_medium", "size_large"};
+    auto text = eLanguage::text(key);
+    if(size >= 0 && size < 4) {
+        eStringHelpers::replace(text, "%1", eLanguage::text(sizeKeys[size]));
+    }
+    return text;
+}
+
 bool eGameTextures::initialize(SDL_Renderer* const r) {
     if(sInitialized) return true;
 //    const bool e = checkTextureFiles();
     const auto path = eGameDir::path("DATA");
-    const bool e = std::filesystem::exists(path);
+    const bool e = std::filesystem::exists(eFsPath::sPath(path));
     if(!e) {
         printf("DATA folder missing from Zeus and Poseidon directory.\n"
                "Expected to find %s\n",
@@ -2318,41 +2331,17 @@ bool eGameTextures::initialize(SDL_Renderer* const r) {
 
         gGameLoaders.emplace_back([i](std::string& text) {
             sTerrainTextures[i].load();
-            if(i == 0) {
-                text = "Loading tiny terrain textures...";
-            } else if(i == 1) {
-                text = "Loading small terrain textures...";
-            } else if(i == 2) {
-                text = "Loading medium terrain textures...";
-            } else if(i == 3) {
-                text = "Loading large terrain textures...";
-            }
+            text = loadingText("loading_terrain_textures", i);
         }, i);
 
         gGameLoaders.emplace_back([i](std::string& text) {
             sBuildingTextures[i].load();
-            if(i == 0) {
-                text = "Loading tiny building textures...";
-            } else if(i == 1) {
-                text = "Loading small building textures...";
-            } else if(i == 2) {
-                text = "Loading medium building textures...";
-            } else if(i == 3) {
-                text = "Loading large building textures...";
-            }
+            text = loadingText("loading_building_textures", i);
         }, i);
 
         gMenuLoaders.emplace_back([i](std::string& text) {
             sInterfaceTextures[i].load();
-            if(i == 0) {
-                text = "Loading tiny interface textures...";
-            } else if(i == 1) {
-                text = "Loading small interface textures...";
-            } else if(i == 2) {
-                text = "Loading medium interface textures...";
-            } else if(i == 3) {
-                text = "Loading large interface textures...";
-            }
+            text = loadingText("loading_interface_textures", i);
         }, i);
 
         i++;
@@ -2383,7 +2372,7 @@ bool eGameTextures::loadNextMenu(const eSettings& settings,
         g.fFinished = true;
         return false;
     }
-    text = "Finished";
+    text = eLanguage::text("loading_finished");
     return true;
 }
 
@@ -2405,7 +2394,7 @@ bool eGameTextures::loadNextGame(const eSettings& settings,
         g.fFinished = true;
         return false;
     }
-    text = "Finished";
+    text = eLanguage::text("loading_finished");
     return true;
 }
 

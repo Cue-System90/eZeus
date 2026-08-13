@@ -1,6 +1,7 @@
 ﻿#include "emusic.h"
 
 #include <fstream>
+#include "efspath.h"
 
 #include "egamedir.h"
 
@@ -123,7 +124,7 @@ void eMusic::playCampaignVictoryMusicImpl() {
 }
 
 bool eMusic::playCampaignVoiceImpl(const std::string &path) {
-    std::ifstream file(path);
+    std::ifstream file(eFsPath::sPath(path));
     if(!file.good()) return false;
     Mix_HaltMusic();
     const auto it = mCampaignVoice.find(path);

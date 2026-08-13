@@ -1,7 +1,9 @@
 #include "exmlparser.h"
 
-#include <fstream>
+#include <vector>
 #include <cctype>
+
+#include "etextencoding.h"
 
 bool match(const std::string& str, const std::string& line,
            const int oldIndex, int& newIndex) {
@@ -67,14 +69,10 @@ bool readId(const std::string& line,
 
 bool eXmlParser::sParse(eTextStrings& strings,
                         const std::string& filePath) {
-    std::ifstream file(filePath);
-    if(!file.good()) {
-        printf("File missing %s\n", filePath.c_str());
-        return false;
-    }
+    std::vector<std::string> lines;
+    if(!eTextEncodings::sReadLines(filePath, lines)) return false;
     eTextGroup* group = nullptr;
-    std::string line;
-    while(std::getline(file, line)) {
+    for(const auto& line : lines) {
         if(line.empty()) continue;
         const int ls = line.size();
         int index = 0;
@@ -122,14 +120,10 @@ bool eXmlParser::sParse(eTextStrings& strings,
 
 bool eXmlParser::sParse(eMMStrings& strings,
                         const std::string& filePath) {
-    std::ifstream file(filePath);
-    if(!file.good()) {
-        printf("File missing %s\n", filePath.c_str());
-        return false;
-    }
+    std::vector<std::string> lines;
+    if(!eTextEncodings::sReadLines(filePath, lines)) return false;
     eMM* group = nullptr;
-    std::string line;
-    while(std::getline(file, line)) {
+    for(const auto& line : lines) {
         if(line.empty()) continue;
         const int ls = line.size();
         int index = 0;

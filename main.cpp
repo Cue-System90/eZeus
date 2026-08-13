@@ -12,6 +12,8 @@
 
 #include "egamedir.h"
 #include "enumbers.h"
+#include "elanguage.h"
+#include "efspath.h"
 
 #include "audio/emusic.h"
 #include "audio/esounds.h"
@@ -143,7 +145,7 @@ int main() {
         }
     }
 
-    if(!std::filesystem::exists(eGameDir::iBinaryPath())) {
+    if(!std::filesystem::exists(eFsPath::sPath(eGameDir::iBinaryPath()))) {
         printf("Could not find interface textures!\n"
                "Make sure you have interface.e file in eZeus directory.\n");
         close();
@@ -152,12 +154,15 @@ int main() {
 
     eNumbers::sLoad();
     eSettings settings;
-    settings.read();
+    settings.read(); // applies the language to the text loading layer
+    // loaded before the first window is shown, the loading screens
+    // already need translated text
+    eLanguage::load();
     bool found = false;
     const auto checkTextureSize = [&found](const std::string& path,
                                            bool& setting) {
         if(!setting) return;
-        setting = std::filesystem::exists(path);
+        setting = std::filesystem::exists(eFsPath::sPath(path));
         if(setting) found = true;
     };
     checkTextureSize(eGameDir::i15BinaryPath(), settings.fTinyTextures);

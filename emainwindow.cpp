@@ -1,4 +1,5 @@
 #include "emainwindow.h"
+#include "efspath.h"
 
 #include "widgets/emainmenu.h"
 #include "widgets/esettingsmenu.h"
@@ -24,6 +25,7 @@
 
 #include "widgets/efilewidget.h"
 #include "elanguage.h"
+#include "emessages.h"
 
 #include "evectorhelpers.h"
 
@@ -31,6 +33,7 @@
 #include "widgets/eepisodeintroductionwidget.h"
 #include "widgets/eepisodelostwidget.h"
 #include "widgets/erosterofleaders.h"
+#include <cmath>
 
 eMainWindow::eMainWindow() {}
 
@@ -72,6 +75,7 @@ bool eMainWindow::initialize(const eSettings& settings) {
     setFullscreen(settings.fFullscreen);
     mSettings = settings;
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    SDL_StartTextInput(); // needed for SDL_TEXTINPUT events
 
     const std::string icoPath = eGameDir::path("zeus.ico");
     const auto icon = IMG_Load(icoPath.c_str());
@@ -249,10 +253,10 @@ void eMainWindow::episodeLost() {
 }
 
 bool eMainWindow::saveGame(const std::string& path) {
-    const auto fsp = std::filesystem::path(path);
+    const auto fsp = eFsPath::sPath(path);
     const auto fspd = fsp.parent_path();
     std::filesystem::create_directories(fspd);
-    std::ofstream file(path, std::ios::out | std::ios::binary |
+    std::ofstream file(eFsPath::sPath(path), std::ios::out | std::ios::binary |
                        std::ios::trunc);
     if(!file) return false;
     eWriteTarget target(&file);
@@ -272,7 +276,7 @@ bool eMainWindow::saveGame(const std::string& path) {
 }
 
 bool eMainWindow::loadGame(const std::string& path) {
-    std::ifstream file(path, std::ios::in | std::ios::binary);
+    std::ifstream file(eFsPath::sPath(path), std::ios::in | std::ios::binary);
     if(!file) return false;
     eReadSource source(&file);
     eReadStream src(source);
@@ -399,10 +403,18 @@ void eMainWindow::showSettingsMenu() {
 
     const auto applyA = [this](const eSettings& settings) {
         const bool loadNeeded = settings.fRes != mSettings.fRes;
+        const bool languageChanged = settings.fLanguage != mSettings.fLanguage;
         setResolution(settings.fRes);
         setFullscreen(settings.fFullscreen);
         mSettings = settings;
         mSettings.write();
+        if(languageChanged) {
+            // the code page of the original game's text files depends on
+            // the language, so the game texts are reread as well
+            mSettings.apply();
+            eLanguage::reload();
+            eMessages::reload();
+        }
         if(!mSettings.fTinyTextures &&
            !mSettings.fSmallTextures &&
            !mSettings.fMediumTextures &&
@@ -645,6 +657,11 @@ int eMainWindow::exec() {
                 }
                 const eKeyPressEvent ke(x, y, shift, ctrl, buttons, k);
                 if(mWidget) mWidget->keyPress(ke);
+            } else if(e.type == SDL_TEXTINPUT) {
+                // SDL has already applied the keyboard layout and any dead
+                // keys, so this is the only place characters outside the
+                // US layout, umlauts among them, can be read from
+                if(mWidget) mWidget->textInput(e.text.text);
             } else if(e.type == SDL_KEYUP) {
                 const auto k = e.key.keysym.scancode;
                 if(k == SDL_Scancode::SDL_SCANCODE_LSHIFT ||

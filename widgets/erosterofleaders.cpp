@@ -1,4 +1,5 @@
 #include "erosterofleaders.h"
+#include "efspath.h"
 
 #include "eframedwidget.h"
 #include "eframedbutton.h"
@@ -68,7 +69,7 @@ void eRosterOfLeaders::initialize() {
                       [this](const std::string& name) {
             if(name.empty()) return;
             const auto dir = eGameDir::saveDir() + name + "/";
-            std::filesystem::create_directories(dir);
+            std::filesystem::create_directories(eFsPath::sPath(dir));
             const auto w = window();
             w->showRosterOfLeaders();
         }, eLanguage::zeusText(44, 374), true);
@@ -198,8 +199,8 @@ void eRosterOfLeaders::initialize() {
 std::vector<std::string> eRosterOfLeaders::sLeaders() {
     std::vector<std::string> leaders;
     const auto folder = eGameDir::saveDir();
-    if(std::filesystem::exists(folder)) {
-        for(const auto& entry : fs::directory_iterator(folder)) {
+    if(std::filesystem::exists(eFsPath::sPath(folder))) {
+        for(const auto& entry : fs::directory_iterator(eFsPath::sPath(folder))) {
             const bool id = entry.is_directory();
             if(!id) continue;
             const auto path = entry.path();
