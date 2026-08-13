@@ -6,6 +6,7 @@
 #include "eframedbuttonwithicon.h"
 #include "engine/egameboard.h"
 #include "engine/egifthelpers.h"
+#include <cmath>
 
 void eGiftSizeDialog::initialize(const eResourceType type,
                                  const stdsptr<eWorldCity>& c,

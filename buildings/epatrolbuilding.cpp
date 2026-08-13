@@ -3,6 +3,7 @@
 #include "characters/echaracter.h"
 #include "characters/actions/epatrolaction.h"
 #include "textures/egametextures.h"
+#include <cmath>
 
 ePatrolBuilding::ePatrolBuilding(eGameBoard& board,
                                  const eBaseTex baseTex,

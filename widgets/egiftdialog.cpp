@@ -8,6 +8,7 @@
 #include "estringhelpers.h"
 
 #include "eboardcityswitchbutton.h"
+#include <cmath>
 
 void eGiftDialog::initialize(const stdsptr<eWorldCity>& c,
                              const eRequestFunction& func,

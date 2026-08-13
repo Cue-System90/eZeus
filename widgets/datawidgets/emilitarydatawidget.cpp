@@ -9,6 +9,7 @@
 #include "widgets/ebasicbutton.h"
 #include "widgets/emilitarymoreinfowidget.h"
 #include "widgets/escrollwidget.h"
+#include <cmath>
 
 void eForcesWidget::initialize(const std::string& title) {
     setNoPadding();

@@ -14,6 +14,7 @@
 #include "enumbers.h"
 
 #include <algorithm>
+#include <cmath>
 
 eSmallHouse::eSmallHouse(eGameBoard& board, const eCityId cid) :
     eHouseBase(board, eBuildingType::commonHouse, 2, 2,

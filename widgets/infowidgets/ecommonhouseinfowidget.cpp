@@ -9,6 +9,7 @@
 #include "elanguage.h"
 
 #include <algorithm>
+#include <cmath>
 
 eCommonHouseInfoWidget::eCommonHouseInfoWidget(
         eMainWindow* const window,

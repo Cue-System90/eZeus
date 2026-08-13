@@ -6,6 +6,7 @@
 #include "engine/egameboard.h"
 
 #include <algorithm>
+#include <cmath>
 
 eWorldCity::eWorldCity(const eCityType type,
                        const eCityId id,

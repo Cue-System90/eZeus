@@ -1,6 +1,7 @@
 #include "ebitmapwidget.h"
 
 #include "textures/egametextures.h"
+#include <cmath>
 
 void eBitmapWidget::sizeHint(int& w, int& h) {
     const auto res = resolution();

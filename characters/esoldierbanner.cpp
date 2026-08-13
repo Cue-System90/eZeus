@@ -19,6 +19,7 @@
 
 #include "elanguage.h"
 #include "estringhelpers.h"
+#include <cmath>
 
 int gNextId = 0;
 

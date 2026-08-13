@@ -2,6 +2,7 @@
 
 #include "characters/echaracter.h"
 #include "erand.h"
+#include <cmath>
 
 eMoveAroundAction::eMoveAroundAction(eCharacter* const c,
                                      const int startX, const int startY,

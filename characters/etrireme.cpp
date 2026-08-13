@@ -8,6 +8,7 @@
 #include "engine/egameboard.h"
 #include "eiteratesquare.h"
 #include "engine/epathfinder.h"
+#include <cmath>
 
 eTrireme::eTrireme(eGameBoard& board) :
     eBoatBase(board, &eCharacterTextures::fTrireme,

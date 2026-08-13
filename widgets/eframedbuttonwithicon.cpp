@@ -1,6 +1,7 @@
 #include "eframedbuttonwithicon.h"
 
 #include "engine/eresourcetype.h"
+#include <cmath>
 
 void eFramedButtonWithIcon::initialize(const std::shared_ptr<eTexture>& icon,
                                        const std::string& text) {

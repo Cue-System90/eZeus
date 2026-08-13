@@ -15,6 +15,7 @@
 #include "widgets/eminimap.h"
 
 #include <algorithm>
+#include <cmath>
 
 class eOverviewEntry : public eWidget {
 public:

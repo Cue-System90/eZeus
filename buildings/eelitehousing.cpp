@@ -8,6 +8,7 @@
 #include "buildings/epalace.h"
 
 #include <algorithm>
+#include <cmath>
 
 eEliteHousing::eEliteHousing(eGameBoard& board,
                              const eCityId cid) :

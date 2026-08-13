@@ -3,6 +3,7 @@
 #include "epopulationdata.h"
 
 #include "engine/egameboard.h"
+#include <cmath>
 
 eHusbandryData::eHusbandryData(const ePopulationData& popData,
                                const eBoardCity& city,

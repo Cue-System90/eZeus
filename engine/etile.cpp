@@ -11,6 +11,7 @@
 #include "spawners/ebanner.h"
 
 #include "eiteratesquare.h"
+#include <cmath>
 
 eTile::eTile(const int x, const int y,
              const int dx, const int dy,

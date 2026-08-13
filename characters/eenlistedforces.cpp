@@ -4,6 +4,7 @@
 
 #include "engine/egameboard.h"
 #include "enumbers.h"
+#include <cmath>
 
 std::map<eCityId, eEnlistedForces>
 eEnlistedForces::splitIntoCities() const {

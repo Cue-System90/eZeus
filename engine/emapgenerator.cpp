@@ -4,6 +4,7 @@
 
 #include <libnoise/noise.h>
 #include <libnoise/module/perlin.h>
+#include <cmath>
 using namespace noise;
 
 #include "spawners/eboarspawner.h"

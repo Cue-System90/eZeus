@@ -28,6 +28,7 @@
 
 #include <string>
 #include <algorithm>
+#include <cmath>
 
 bool sDontDrawAppeal(const eTerrain terr) {
     return terr == eTerrain::stones ||

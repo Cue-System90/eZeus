@@ -68,6 +68,7 @@
 #include "estringhelpers.h"
 
 #include <algorithm>
+#include <cmath>
 
 eGameWidget::eGameWidget(eMainWindow* const window) :
     eMainWidget(window) {}

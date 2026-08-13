@@ -8,6 +8,7 @@
 #include "escrollwidget.h"
 
 #include <algorithm>
+#include <cmath>
 
 eMilitaryMoreInfoWidget::eMilitaryMoreInfoWidget(
         eMainWindow* const window,

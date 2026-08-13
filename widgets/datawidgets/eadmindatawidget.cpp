@@ -14,6 +14,7 @@
 #include "widgets/moreinfo/ecityfinanceswidget.h"
 
 #include <algorithm>
+#include <cmath>
 
 void eAdminDataWidget::initialize() {
     {

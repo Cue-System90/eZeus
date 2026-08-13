@@ -46,6 +46,7 @@
 #include "eevent.h"
 
 #include <algorithm>
+#include <cmath>
 
 eBoardCity::eBoardCity(const eCityId cid, eGameBoard& board) :
     mBoard(board),

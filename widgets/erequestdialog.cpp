@@ -7,6 +7,7 @@
 #include "textures/egametextures.h"
 #include "eboardcityswitchbutton.h"
 #include "engine/eworldboard.h"
+#include <cmath>
 
 void eRequestDialog::initialize(const stdsptr<eWorldCity>& c,
                                 eWorldBoard &board,

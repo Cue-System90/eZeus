@@ -1,4 +1,5 @@
 #include "etilepainter.h"
+#include <cmath>
 
 eTilePainter::eTilePainter(ePainter& p,
                            const eTileSize size,

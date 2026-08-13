@@ -14,6 +14,7 @@
 #include "egodattackaction.h"
 #include "emonsteraction.h"
 #include "epatrolmoveaction.h"
+#include <cmath>
 
 
 void eGodMonsterAction::appear() {

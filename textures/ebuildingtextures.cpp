@@ -620,6 +620,7 @@
 #include "offsets/PoseidonImps.h"
 
 #include "textures/espriteloader.h"
+#include <cmath>
 
 eBuildingTextures::eBuildingTextures(const int tileW, const int tileH,
                                      SDL_Renderer* const renderer) :

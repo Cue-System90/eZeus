@@ -1,6 +1,7 @@
 #include "edifficulty.h"
 
 #include "characters/echaracterbase.h"
+#include <cmath>
 
 std::string eDifficultyHelpers::name(const eDifficulty diff) {
     switch(diff) {

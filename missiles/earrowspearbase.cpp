@@ -1,4 +1,5 @@
 #include "earrowspearbase.h"
+#include <cmath>
 
 eArrowSpearBase::eArrowSpearBase(eGameBoard& board,
                                  const eMissileTexs missileTexs,

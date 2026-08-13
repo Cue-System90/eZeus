@@ -6,6 +6,7 @@
 #include "engine/eemploymentdistributor.h"
 #include "engine/egameboard.h"
 #include "elanguage.h"
+#include <cmath>
 
 eWorkforceAllocationWidget::eWorkforceAllocationWidget(
         eMainWindow* const window,

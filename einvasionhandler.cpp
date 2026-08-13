@@ -60,6 +60,7 @@
 #include "eiteratesquare.h"
 
 #include <algorithm>
+#include <cmath>
 
 eInvasionHandler::eInvasionHandler(eGameBoard& board,
                                    const eCityId targetCity,

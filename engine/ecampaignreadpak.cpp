@@ -31,6 +31,7 @@
 #include "gameEvents/einvasionevent.h"
 #include "gameEvents/erivalarmyawayevent.h"
 #include "gameEvents/etroopsrequestevent.h"
+#include <cmath>
 
 eResourceType pakCityResourceByteToType(
         const uint8_t byte, const bool poseidon) {

@@ -29,6 +29,7 @@
 #include "ebuildwidget.h"
 #include "ebasicbutton.h"
 #include "erotatebutton.h"
+#include <cmath>
 
 struct eSubButtonData {
     eBuildingMode fMode;

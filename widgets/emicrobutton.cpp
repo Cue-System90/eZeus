@@ -1,6 +1,7 @@
 #include "emicrobutton.h"
 
 #include "textures/egametextures.h"
+#include <cmath>
 
 void eMicroButton::sizeHint(int& w, int& h) {
     eButtonBase::sizeHint(w, h);

@@ -8,6 +8,7 @@
 #include "eminimap.h"
 #include "egamewidget.h"
 #include "elanguage.h"
+#include <cmath>
 
 void eTerrainEditMenu::initialize(eGameWidget* const gw,
                                   eGameBoard* const board) {

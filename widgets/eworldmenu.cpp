@@ -10,6 +10,7 @@
 #include "engine/eworldboard.h"
 
 #include "elanguage.h"
+#include <cmath>
 
 void eWorldMenu::initialize(const eAction& openRequest,
                             const eAction& openFulfill,

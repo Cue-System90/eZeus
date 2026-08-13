@@ -13,6 +13,7 @@
 #include "widgets/eprogressbar.h"
 
 #include <algorithm>
+#include <cmath>
 
 eSanctuaryInfoWidget::eSanctuaryInfoWidget(
         eMainWindow* const window,

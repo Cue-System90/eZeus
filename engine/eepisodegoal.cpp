@@ -10,6 +10,7 @@
 #include "engine/egameboard.h"
 #include "buildings/pyramids/epyramid.h"
 #include "evectorhelpers.h"
+#include <cmath>
 
 stdsptr<eEpisodeGoal> eEpisodeGoal::makeCopy() const {
     const auto result = std::make_shared<eEpisodeGoal>();

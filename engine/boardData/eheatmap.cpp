@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 
 void eHeatMap::add(const eHeatMap& other) {
     assert(mDX == other.mDX);
@@ -88,8 +89,10 @@ void eHeatMap::addHeat(const eHeat& a,
         for(int y = ay - r; y <= ay + sh + r; y++) {
             const double cx = ax + 0.5*sw;
             const double cy = ay + 0.5*sh;
-            const double dx = std::max(abs(x - cx) - 0.5*sw, 0.);
-            const double dy = std::max(abs(y - cy) - 0.5*sh, 0.);
+            // qualified, an unqualified abs would pick the int overload
+            // and drop the half tile offsets in cx and cy
+            const double dx = std::max(std::abs(x - cx) - 0.5*sw, 0.);
+            const double dy = std::max(std::abs(y - cy) - 0.5*sh, 0.);
             const double dist = std::sqrt(dx * dx + dy * dy);
             if(dist > r) continue;
             const double mult = (r - dist)/r;

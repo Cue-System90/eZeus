@@ -1,4 +1,5 @@
 #include "eracinghorse.h"
+#include <cmath>
 
 eRacingHorse::eRacingHorse(eGameBoard& board, const int id,
                            const std::vector<ePathPoint>& path) :

@@ -4,6 +4,7 @@
 #include "enumbers.h"
 
 #include <algorithm>
+#include <cmath>
 
 eFarmBase::eFarmBase(eGameBoard& board,
                      const eBuildingType type,
