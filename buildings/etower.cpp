@@ -143,7 +143,7 @@ void eTower::timeChanged(const int by) {
                     if(!t) continue;
                     const auto& chars = t->characters();
                     for(const auto& cc : chars) {
-                        if(!cc->isFighter()) continue;
+                        if(!cc->isFighter() && !cc->isHostileAnimal()) continue;
                         const auto cctid = cc->teamId();
                         if(!eTeamIdHelpers::isEnemy(cctid, tid)) continue;
                         if(cc->dead()) continue;

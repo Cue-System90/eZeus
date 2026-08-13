@@ -46,6 +46,12 @@ bool eCharacterBase::isFighter() const {
            t == eCharacterType::trireme;
 }
 
+bool eCharacterBase::isHostileAnimal() const {
+    // boars and deer are neutralFriendly and carry no attack, so they are
+    // left out here and would be filtered by the team check anyway
+    return type() == eCharacterType::wolf;
+}
+
 bool eCharacterBase::isBoat() const {
     const auto t = type();
     return t == eCharacterType::tradeBoat ||

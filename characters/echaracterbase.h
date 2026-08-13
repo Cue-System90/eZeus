@@ -207,6 +207,9 @@ public:
 
     bool isSoldier() const;
     bool isFighter() const;
+    // a wild animal that fights back. Not a fighter, but towers and troops
+    // do go after it, the way they do in the original game.
+    bool isHostileAnimal() const;
     bool isBoat() const;
     bool isGod() const;
     bool isHero() const;

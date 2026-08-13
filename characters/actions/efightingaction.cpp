@@ -223,6 +223,8 @@ eLookForEnemyState eFightingAction::lookForEnemy(const int by) {
     }
     stdsptr<eCharacter> secondOption;
     stdsptr<eCharacter> thirdOption;
+    // wolves and the like, taken once no enemy soldier is in reach
+    stdsptr<eCharacter> animalOption;
     for(int i = -1; i <= 1; i++) {
         for(int j = -1; j <= 1; j++) {
             const auto t = brd.tile(tx + i, ty + j);
@@ -243,6 +245,8 @@ eLookForEnemyState eFightingAction::lookForEnemy(const int by) {
                     } else if(cctype == eCharacterType::enemyBoat ||
                               cctype == eCharacterType::trireme) {
                         secondOption = cc;
+                    } else if(cc->isHostileAnimal()) {
+                        animalOption = cc;
                     }
                     continue;
                 }
@@ -254,6 +258,10 @@ eLookForEnemyState eFightingAction::lookForEnemy(const int by) {
                 if(r) return eLookForEnemyState::attacking;
             }
         }
+    }
+    if(animalOption) {
+        setAttackTarget(animalOption, false);
+        return eLookForEnemyState::attacking;
     }
     if(secondOption) {
         setAttackTarget(secondOption, false);
@@ -284,6 +292,8 @@ eLookForEnemyState eFightingAction::lookForEnemy(const int by) {
                             } else if(cctype == eCharacterType::enemyBoat ||
                                       cctype == eCharacterType::trireme) {
                                 secondOption = cc;
+                            } else if(cc->isHostileAnimal()) {
+                                animalOption = cc;
                             }
                             continue;
                         }
@@ -299,6 +309,11 @@ eLookForEnemyState eFightingAction::lookForEnemy(const int by) {
             }
         }
 
+        if(animalOption) {
+            setAttackTarget(animalOption, true);
+            sSignalBeingAttack(animalOption.get(), c, brd);
+            return eLookForEnemyState::attacking;
+        }
         if(secondOption) {
             setAttackTarget(secondOption, true);
             return eLookForEnemyState::attacking;
@@ -322,7 +337,7 @@ eLookForEnemyState eFightingAction::lookForEnemy(const int by) {
                     if(!t) continue;
                     const auto& chars = t->characters();
                     for(const auto& cc : chars) {
-                        if(!cc->isFighter()) continue;
+                        if(!cc->isFighter() && !cc->isHostileAnimal()) continue;
                         const auto cctid = cc->teamId();
                         if(!eTeamIdHelpers::isEnemy(cctid, tid)) continue;
                         if(cc->dead()) continue;
