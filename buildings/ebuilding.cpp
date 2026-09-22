@@ -69,7 +69,8 @@ bool eBuilding::sWalkableBuilding(const eBuildingType t) {
     if(t == eBuildingType::goat) return true;
     if(t == eBuildingType::cattle) return true;
     if(t == eBuildingType::templeTile) return true;
-    if(t == eBuildingType::palaceTile) return true;
+    // the tiles around the palace are part of it, in the original nobody
+    // walks over them
     if(t == eBuildingType::godMonumentTile) return true;
     const int min = static_cast<int>(eBuildingType::templeAphrodite);
     const int max = static_cast<int>(eBuildingType::templeZeus);

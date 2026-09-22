@@ -78,7 +78,9 @@ void eTopBarWidget::initialize() {
     mPopulationWidget->align(eAlignment::vcenter);
     mDateLabel->align(eAlignment::vcenter);
 
-    layoutHorizontally();
+    // the spacers above are the intended gaps, spreading the row over the
+    // whole width on top of them leaves the left of a wide bar empty
+    stackHorizontally(0);
 }
 
 void eTopBarWidget::setBoard(eGameBoard* const board) {
@@ -114,7 +116,16 @@ void eTopBarWidget::paintEvent(ePainter& p) {
         mDrachmasWidget->setText(std::to_string(d));
 
         mDateLabel->setText(mBoard->date().shortString());
+        mDateLabel->fitContent();
         mDateLabel->setEnabled(mBoard->editorMode());
+
+        // the texts above are wider than the placeholders initialize() laid
+        // the row out with, so the row has to be laid out again
+        stackHorizontally(0);
+        mCityLabel->align(eAlignment::vcenter);
+        mDrachmasWidget->align(eAlignment::vcenter);
+        mPopulationWidget->align(eAlignment::vcenter);
+        mDateLabel->align(eAlignment::vcenter);
 
         int iRes;
         int mult;

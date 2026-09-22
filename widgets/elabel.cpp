@@ -24,6 +24,19 @@ void eLabel::fitOptions(const std::vector<std::string> &options) {
     setText(tmp);
 }
 
+void eLabel::sSetRowWidth(const std::vector<eLabel*>& labels, const int w) {
+    int size = 0;
+    for(const auto l : labels) {
+        l->fitFontToWidth(w - 2*l->padding());
+        const int s = l->ptSize();
+        if(size == 0 || s < size) size = s;
+    }
+    for(const auto l : labels) {
+        l->setFontSize(size);
+        l->setWidth(w);
+    }
+}
+
 void eLabel::renderTargetsReset() {
     eWidget::renderTargetsReset();
     updateTexture();

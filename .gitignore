@@ -73,3 +73,6 @@ CMakeLists.txt.user*
 *.dll
 *.exe
 
+
+# Originalspieldateien - urheberrechtlich geschuetzt, gehoeren nicht ins Repo
+Original_PC_Games_Release/

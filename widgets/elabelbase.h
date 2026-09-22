@@ -15,6 +15,9 @@ public:
 
     bool setFont(const eFont& font);
     bool setFontSize(const int s);
+    // Lowers the font size until the text is no wider than w. Returns
+    // false when it does not fit even at the smallest size.
+    bool fitFontToWidth(const int w);
     std::string text() const { return mText; }
     bool setText(const std::string& text);
     bool setTexture(const std::shared_ptr<eTexture>& tex);
@@ -26,7 +29,8 @@ public:
     void setDarkFontColor();
     void setYellowFontColor();
 
-    int fontSize() const;
+    int fontSize() const; // the height of the font, not the size asked for
+    int ptSize() const;   // the size asked for
 
     void setWrapWidth(const int w);
 
@@ -47,6 +51,8 @@ private:
     bool updateTextTexture();
 
     int mWidth = 0;
+    // 0 means the default the constructor picked, the large size
+    int mPtSize = 0;
     eMainWindow* const mWindow;
     TTF_Font* mFont = nullptr;
     std::string mText;

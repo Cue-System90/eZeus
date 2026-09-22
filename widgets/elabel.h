@@ -11,6 +11,9 @@ public:
            eMainWindow* const window);
 
     void fitOptions(const std::vector<std::string>& options);
+    // Gives every label the same width and, where a text does not fit it,
+    // the same reduced font size.
+    static void sSetRowWidth(const std::vector<eLabel*>& labels, const int w);
     void renderTargetsReset() override;
 protected:
     void sizeHint(int& w, int& h) override;

@@ -60,7 +60,6 @@ void eRosterOfLeaders::initialize() {
     createB->setUnderline(false);
     createB->setText(eLanguage::zeusText(292, 0)); // create leader
     createB->fitContent();
-    createB->setWidth(bw);
     buttons1->addWidget(createB);
     createB->setPressAction([this]() {
         const auto w = window();
@@ -87,7 +86,6 @@ void eRosterOfLeaders::initialize() {
     deleteB->setUnderline(false);
     deleteB->setText(eLanguage::zeusText(292, 1)); // delete leader
     deleteB->fitContent();
-    deleteB->setWidth(bw);
     buttons1->addWidget(deleteB);
     deleteB->setPressAction([this, selected]() {
         if(selected->empty()) return;
@@ -106,7 +104,6 @@ void eRosterOfLeaders::initialize() {
     proceedB->setUnderline(false);
     proceedB->setText(eLanguage::zeusText(292, 2)); // proceed
     proceedB->fitContent();
-    proceedB->setWidth(bw);
     buttons1->addWidget(proceedB);
     proceedB->setPressAction([this, selected]() {
         if(selected->empty()) return;
@@ -115,6 +112,7 @@ void eRosterOfLeaders::initialize() {
         w->showMainMenu();
     });
 
+    eLabel::sSetRowWidth({createB, deleteB, proceedB}, bw);
     buttons1->layoutHorizontallyWithoutSpaces();
     buttons1->fitHeight();
     buttons->addWidget(buttons1);

@@ -7,6 +7,8 @@
 #include "engine/egameboard.h"
 #include "fileIO/ewritestream.h"
 
+#include <algorithm>
+
 void eGameMainMenu::initialize(const eAction& resumeAct,
                                const eAction& saveAct,
                                const eAction& loadAct,
@@ -19,7 +21,6 @@ void eGameMainMenu::initialize(const eAction& resumeAct,
     resButt->fitContent();
     resButt->setPressAction(resumeAct);
     addWidget(resButt);
-    resButt->align(eAlignment::hcenter);
 
     const auto saveButt = new eFramedButton(window());
     saveButt->setUnderline(false);
@@ -27,7 +28,6 @@ void eGameMainMenu::initialize(const eAction& resumeAct,
     saveButt->fitContent();
     saveButt->setPressAction(saveAct);
     addWidget(saveButt);
-    saveButt->align(eAlignment::hcenter);
 
     const auto loadButt = new eFramedButton(window());
     loadButt->setUnderline(false);
@@ -35,7 +35,6 @@ void eGameMainMenu::initialize(const eAction& resumeAct,
     loadButt->fitContent();
     loadButt->setPressAction(loadAct);
     addWidget(loadButt);
-    loadButt->align(eAlignment::hcenter);
 
     const auto exitButt = new eFramedButton(window());
     exitButt->setUnderline(false);
@@ -43,7 +42,15 @@ void eGameMainMenu::initialize(const eAction& resumeAct,
     exitButt->fitContent();
     exitButt->setPressAction(exitAct);
     addWidget(exitButt);
-    exitButt->align(eAlignment::hcenter);
+
+    // the caller sizes the frame for the English texts, a translation may
+    // need more room than that
+    const std::vector<eWidget*> buttons{resButt, saveButt, loadButt, exitButt};
+    int bw = 0;
+    for(const auto b : buttons) bw = std::max(bw, b->width());
+    const int p = resolution().largePadding();
+    if(bw + 4*p > width()) setWidth(bw + 4*p);
+    for(const auto b : buttons) b->align(eAlignment::hcenter);
 
     layoutVertically();
 }

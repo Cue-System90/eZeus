@@ -11,6 +11,7 @@ eLabelBase::eLabelBase(eMainWindow* const window) :
 
 bool eLabelBase::setFont(const eFont& font) {
     const auto ttf = eFonts::requestFont(font);
+    mPtSize = font.fPtSize;
     return setFont(ttf);
 }
 
@@ -36,7 +37,24 @@ bool eLabelBase::setHugeFontSize() {
 
 bool eLabelBase::setFontSize(const int s) {
     const auto font = eFonts::defaultFont(s);
+    mPtSize = s;
     return setFont(font);
+}
+
+bool eLabelBase::fitFontToWidth(const int w) {
+    if(w <= 0 || mText.empty()) return true;
+    // the original game is English only, its translations are wider and
+    // do not always fit the width a menu reserves for them
+    const int minSize = std::max(1, res().tinyFontSize());
+    int size = ptSize();
+    while(true) {
+        int tw, th;
+        textureSize(tw, th);
+        if(tw <= w) return true;
+        if(size <= minSize) return false;
+        size = std::max(minSize, size - 1);
+        setFontSize(size);
+    }
 }
 
 bool eLabelBase::setFont(TTF_Font* const font) {
@@ -84,6 +102,10 @@ void eLabelBase::setYellowFontColor() {
 int eLabelBase::fontSize() const {
     if(!mFont) return 0;
     return TTF_FontHeight(mFont);
+}
+
+int eLabelBase::ptSize() const {
+    return mPtSize > 0 ? mPtSize : res().largeFontSize();
 }
 
 void eLabelBase::setWrapWidth(const int w) {
