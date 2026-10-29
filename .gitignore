@@ -76,3 +76,7 @@ CMakeLists.txt.user*
 
 # Originalspieldateien - urheberrechtlich geschuetzt, gehoeren nicht ins Repo
 Original_PC_Games_Release/
+
+# Spielbare Installation (Upstream-Release mit Texturen, Spielstaenden und
+# eigenem Build) - zu gross und nicht Teil des Quellcodes
+/release/
