@@ -1683,19 +1683,11 @@ void eBoardCity::updateMaxSoldiers() {
             mMaxRabble += std::min(lvlMax, popMax);
         } else if(bt == eBuildingType::eliteHousing) {
             const auto eh = static_cast<eEliteHousing*>(b);
-            const int l = eh->level();
-            if(l < 2) continue;
-            const int a = eh->arms();
-            if(l == 2) {
-                mMaxHoplites += std::min(2, a);
-            } else if(l == 3) {
-                mMaxHoplites += std::min(4, a);
-            } else if(l == 4) {
-                const int h = eh->horses();
-                const int hh = std::min(std::min(a, 4), h);
-                mMaxHorsemen += hh;
-                mMaxHoplites += std::min(4 - hh, a - hh);
-            }
+            int hoplites;
+            int horsemen;
+            eh->soldiers(hoplites, horsemen);
+            mMaxHoplites += hoplites;
+            mMaxHorsemen += horsemen;
         }
     }
     mMaxRabble /= eNumbers::sRabbleDivisor;

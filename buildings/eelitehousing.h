@@ -52,6 +52,9 @@ public:
     void removeArmor();
     void removeHorse();
 
+    // soldiers this house provides to the army of its city
+    void soldiers(int& hoplites, int& horsemen) const;
+
     eHouseMissing missing() const override;
 
     void read(eReadStream& src) override;

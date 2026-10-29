@@ -914,11 +914,56 @@ void eGameWidget::paintEvent(ePainter& p) {
             }
         };
 
+        // The military view shows the soldiers of an elite house
+        // standing in a row on its flattened plot
+        const auto drawEliteSoldiers = [&]() {
+            const auto eh = static_cast<eEliteHousing*>(ub);
+            if(eh->people() == 0) return;
+            const auto rubRect = eTileHelper::toRotatedRect(
+                                     ub->tileRect(), dir, boardw, boardh);
+            const bool last = rtx == rubRect.x + rubRect.w - 1 &&
+                              rty == rubRect.y + rubRect.h - 1;
+            if(!last) return;
+            int hoplites;
+            int horsemen;
+            eh->soldiers(hoplites, horsemen);
+            const int n = hoplites + horsemen;
+            if(n == 0) return;
+            const std::vector<eTextureCollection>* hopliteWalk;
+            const std::vector<eTextureCollection>* horsemanWalk;
+            if(eh->atlantean()) {
+                eGameTextures::loadHoplitePoseidon();
+                eGameTextures::loadChariotPoseidon();
+                hopliteWalk = &charTexs.fHoplitePoseidon.fWalk;
+                horsemanWalk = &charTexs.fChariotPoseidon.fWalk;
+            } else {
+                eGameTextures::loadHoplite();
+                eGameTextures::loadHorseman();
+                hopliteWalk = &charTexs.fHoplite.fWalk;
+                horsemanWalk = &charTexs.fHorseman.fWalk;
+            }
+            const int oid = static_cast<int>(eOrientation::bottomLeft);
+            // same placement as a character standing on the plot center
+            const double cx = rubRect.x + 0.5*rubRect.w + 0.25 - da*0.5;
+            const double cy = rubRect.y + 0.5*rubRect.h + 0.25 - da*0.5;
+            const double step = 0.45;
+            for(int i = 0; i < n; i++) {
+                const auto& walk = i < horsemen ? *horsemanWalk : *hopliteWalk;
+                const auto tex = walk[oid].getTexture(0);
+                const double s = (i - 0.5*(n - 1))*step;
+                tp.drawTexture(cx + s, cy, tex);
+            }
+        };
+
         if(ub && !v) {
             if(!isPatrolSelected(ub) && mViewMode != eViewMode::appeal) {
                 const auto tex = getBasementTexture(rtx, rty, ub, trrTexs,
                                                     dir, boardw, boardh);
                 tp.drawTexture(rx, ry, tex, eAlignment::top);
+            }
+            if(mViewMode == eViewMode::security &&
+               bt == eBuildingType::eliteHousing) {
+                drawEliteSoldiers();
             }
         } else if(ub && !eBuilding::sFlatBuilding(bt)) {
             const auto getDisplacement =

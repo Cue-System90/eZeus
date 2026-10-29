@@ -276,6 +276,19 @@ void eEliteHousing::removeHorse() {
     updateLevel();
 }
 
+void eEliteHousing::soldiers(int& hoplites, int& horsemen) const {
+    hoplites = 0;
+    horsemen = 0;
+    if(mLevel == 2) {
+        hoplites = std::min(2, mArms);
+    } else if(mLevel == 3) {
+        hoplites = std::min(4, mArms);
+    } else if(mLevel == 4) {
+        horsemen = std::min(std::min(mArms, 4), mHorses);
+        hoplites = std::min(4 - horsemen, mArms - horsemen);
+    }
+}
+
 eHouseMissing eEliteHousing::missing() const {
     const double appeal = eHouseBase::appeal();
     int nVenues = 0;
