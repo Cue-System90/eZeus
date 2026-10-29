@@ -66,7 +66,7 @@ class Grid {
 		* @param y Y position
 		* @return T item at position (x, y)
 		*/
-		T get(int x, int y) {
+		T get(int x, int y) const {
 			if (x < 0 || y < 0 || x >= this->x || y >= this->y) {
 				return (T)0;
 			}

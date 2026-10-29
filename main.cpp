@@ -101,7 +101,22 @@ bool getDisplayResolutions(std::vector<SDL_DisplayMode>& resolutions) {
     return true;
 }
 
-int main() {
+int main(int argc, char** argv) {
+    // eZeus --import-sav <original .sav> [<converted .ez>]
+    // eZeus --load <saved game .ez>
+    std::string importSav;
+    std::string importOut;
+    std::string load;
+    for(int i = 1; i < argc; i++) {
+        const std::string arg = argv[i];
+        if(arg == "--import-sav" && i + 1 < argc) {
+            importSav = argv[++i];
+            if(i + 1 < argc) importOut = argv[++i];
+        } else if(arg == "--load" && i + 1 < argc) {
+            load = argv[++i];
+        }
+    }
+
     if(!init()) {
         printf("Failed to initialize!\n");
         close();
@@ -183,6 +198,8 @@ int main() {
         eMainWindow w;
         const bool i = w.initialize(settings);
         if(!i) return 1;
+        if(!importSav.empty()) w.setStartupImport(importSav, importOut);
+        if(!load.empty()) w.setStartupLoad(load);
         const bool e = eGameTextures::initialize(w.renderer());
 
         if(e) r = w.exec();

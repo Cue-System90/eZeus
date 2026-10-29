@@ -83,6 +83,16 @@ public:
     const std::string& leader() const { return mLeader; }
     void setLeader(const std::string& leader) { mLeader = leader; }
     std::string leaderSaveDir() const;
+
+    // Starts the city of a saved game of the original game (.sav). With an
+    // output path the city is saved there as .ez and the program ends.
+    bool importOriginalSave(const std::string& sav,
+                            const std::string& out = "");
+    // imports right after the start instead of showing the main menu
+    void setStartupImport(const std::string& sav,
+                          const std::string& out);
+    // loads a saved game right after the start
+    void setStartupLoad(const std::string& path) { mLoad = path; }
 private:
     void clearWidgets();
     void fitResolutionToWindow();
@@ -90,6 +100,10 @@ private:
     eSettings mSettings;
 
     std::string mLeader;
+
+    std::string mImportSav;
+    std::string mImportOut;
+    std::string mLoad;
 
     bool mQuit = false;
     bool mFirstFullscrenSetting = true;

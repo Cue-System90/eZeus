@@ -2174,7 +2174,7 @@ bool eGameWidget::buildMouseRelease() {
         mBoard->updateMarbleTiles();
         mBoard->scheduleTerrainUpdate();
     }
-    if(r) {
+    if(r && !mImporting) {
         const auto type = eBuildingModeHelpers::toBuildingType(mode);
         if(type != eBuildingType::road) {
             eSounds::playPlaceBuildingSound();

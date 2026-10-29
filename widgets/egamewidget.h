@@ -26,6 +26,7 @@
 
 class eTerrainEditMenu;
 class eDomesticatedAnimal;
+class ZeusSaveFile;
 struct eSanctBlueprint;
 class eWorldWidget;
 struct eGodMessages;
@@ -139,6 +140,11 @@ public:
     void updateCitiesOnBoard();
 
     void setWorldDirection(const eWorldDirection dir);
+
+    // Rebuilds the city of a saved game of the original game on the board,
+    // which has to come from the same adventure. Returns a report of what
+    // could not be taken over.
+    std::string importOriginalSave(const ZeusSaveFile& save);
 
     void centerDialog(eWidget* const d);
     void openDialog(eWidget* const d) override;
@@ -292,6 +298,8 @@ private:
     eMouseButton mPressedButtons = eMouseButton::none;
 
     bool mEditorMode = false;
+    // while a saved game is imported, without tips and sounds
+    bool mImporting = false;
     bool mEditorShowBuildings = false;
     bool mTerrainEditMode = false;
 

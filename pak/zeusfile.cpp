@@ -204,6 +204,147 @@ eNamePlace pakIdToNamePlace(const uint8_t id) {
     return eNamePlace::bottom;
 }
 
+ZeusFile::eOriginalTileMap ZeusFile::sApplyTerrain(
+        eGameBoard& board, const int mapsize, const bool atlantean,
+        const Grid<uint32_t>& terrain,
+        const Grid<uint8_t>& scrub,
+        const Grid<uint8_t>& elevation) {
+    const int MAX_MAPSIZE = 228;
+    const int half = MAX_MAPSIZE / 2;
+    const int border = (MAX_MAPSIZE - mapsize) / 2;
+    const int max = border + mapsize;
+    const int halfMapsize = mapsize/2;
+    const int shift = mapsize/4;
+
+    eOriginalTileMap tileMap;
+    std::vector<eTile*> halfSlopes;
+
+    const auto buildRoad = [&](eTile* const tile) {
+        const auto cid = tile->cityId();
+        const auto road = e::make_shared<eRoad>(board, cid);
+        tile->setUnderBuilding(road);
+        road->addUnderBuilding(tile);
+        road->setCenterTile(tile);
+        const int dx = tile->dx();
+        const int dy = tile->dy();
+        int x;
+        int y;
+        eTileHelper::dtileIdToTileId(dx, dy, x, y);
+        road->setTileRect({x, y, 1, 1});
+    };
+
+    for(int y = border; y < max; y++) {
+        const int start = (y < half) ? (border + half - y - 1) : (border + y - half);
+        const int end = (y < half) ? (half + y + 1 - border) : (3*half - y - border);
+        for(int x = start; x < end; x++) {
+            const uint32_t t_terrain = terrain.get(x, y);
+            // const uint8_t t_random = random->get(x, y);
+            // const uint8_t t_meadow = fertile->get(x, y);
+            const uint8_t t_scrub = scrub.get(x, y);
+            const uint8_t t_elevation = elevation.get(x, y);
+
+            const int dy = 2 + x + y - halfMapsize - (halfMapsize % 2 ? 0 : 1) - 2*border;
+            const int dx = mapsize / 2 + (x - y + (dy % 2 ? 0 : 1))/2 - 1 - shift;
+
+            const auto tile = board.dtile(dx, dy);
+
+            tileMap[y - border][x - border].fTile = tile;
+
+            if(!tile) continue;
+            tile->setTerrain(eTerrain::dry);
+            tile->setRainforest(atlantean);
+            tile->setAltitude(t_elevation);
+
+            if(t_terrain & 0x1) {
+                tile->setTerrain(eTerrain::forest);
+            } else if(t_terrain & 0x2) {
+                if((t_terrain & 0x300002) == 0x100002) { // copper ore
+                    tile->setTerrain(eTerrain::copper);
+                } else if((t_terrain & 0x300002) == 0x200002) { // silver ore
+                    tile->setTerrain(eTerrain::silver);
+                } else { // normal (0x2) or cliff rock (0x300002)
+                    // or black marble quarry (0x120000) ??
+                    tile->setTerrain(eTerrain::flatStones);
+                }
+            } else if(t_terrain & 0x10000000 && (!(t_terrain & 0x8) || t_terrain & 0x40)) {
+                // sanctuary or pyramid
+            } else if(t_terrain & 0x8) { // building, fill in for boulevard or avenue
+            } else if(t_terrain & 0x20) { // park
+            } else if(t_terrain & 0x200) { // elevation
+                if(t_terrain & 8388608) {
+                    halfSlopes.push_back(tile);
+                }
+                if((t_terrain & 1536) == 1536) {
+                    tile->setWalkableElev(true);
+                }
+                if(t_terrain & 64) {
+                    buildRoad(tile);
+                }
+            } else if(t_terrain & 0x40) { // road
+                buildRoad(tile);
+            } else if(t_terrain & 0x4) { // water
+                if(t_terrain & 0x4000000) { // deep water
+                } else { // shallow water
+                }
+                tile->setTerrain(eTerrain::water);
+            } else if(t_terrain & 0x20000) { // marble quarry
+                if(t_terrain & 0x100000) { // black marble
+                } else { // normal marble
+                    tile->setTerrain(eTerrain::marble);
+                }
+            } else if((t_terrain & 0x300000) == 0x300000) { // orichalc
+                tile->setTerrain(eTerrain::orichalc);
+            } else if(t_terrain & 0x4000) { // wall
+            } else if(t_terrain & 0x800) { // meadow
+                tile->setTerrain(eTerrain::fertile);
+                tile->setScrub(0.01*t_scrub);
+            } else if(t_terrain & 0x80) { // beach / beach edge / scrub
+                if(t_terrain & 0x10000) { // beach sand
+                    tile->setTerrain(eTerrain::beach);
+                } else { // beach edge OR scrub
+                    if(t_scrub <= 0x18) {
+                    } else if(t_scrub <= 0x38) {
+                    } else if(t_scrub <= 0x48) {
+                    } else if(t_scrub <= 0x50) {
+                    } else {
+                    }
+                    tile->setScrub(0.01*t_scrub);
+                }
+            } else if(t_terrain & 0x40000) { // marshland
+                tile->setTerrain(eTerrain::marsh);
+            } else if(t_terrain & 0x1000000) { // molten lava
+            } else { // empty land
+                tile->setScrub(0.01*t_scrub);
+            }
+            if(t_terrain & 2147483648) { // land slide
+                tile->setLandSlideZone(true);
+            }
+            if(t_terrain & 256) { // tidal wave
+                tile->setTidalWaveZone(true);
+            }
+            if(t_terrain & 16) { // lava
+                tile->setLavaZone(true);
+            }
+		}
+	}
+
+    for(const auto tile : halfSlopes) {
+        const bool w = tile->walkableElev();
+        const int a = tile->altitude();
+        const auto ns = tile->diagonalNeighbours(nullptr);
+        for(const auto& n : ns) {
+            const auto ntile = static_cast<eTile*>(n.second);
+            if(w && !tile->hasRoad() && ntile->hasRoad()) buildRoad(tile);
+            const int na = ntile->altitude();
+            if(na == a + 1) {
+                tile->setDoubleAltitude(2*na - 1);
+            }
+        }
+    }
+
+    return tileMap;
+}
+
 bool ZeusFile::loadBoard(eGameBoard& board, eCampaign& campaign,
                          eCityId& cid) {
     if(retrievedMaps >= numMaps) {
@@ -233,7 +374,6 @@ bool ZeusFile::loadBoard(eGameBoard& board, eCampaign& campaign,
 
     skipBytes(60);
     const int mapsize = readUInt(); // Poseidon or not doesn't matter here
-    const int halfMapsize = mapsize/2;
 
     skipBytes(604);
 
@@ -654,11 +794,6 @@ bool ZeusFile::loadBoard(eGameBoard& board, eCampaign& campaign,
 	}
 
 	// Transform it to something useful
-    const int half = MAX_MAPSIZE / 2;
-    const int border = (MAX_MAPSIZE - mapsize) / 2;
-    const int max = border + mapsize;
-
-    const int shift = mapsize/4;
     int boardW = mapsize/2;
     if(boardW % 2) boardW++;
     int boardH = mapsize + 1;
@@ -693,138 +828,8 @@ bool ZeusFile::loadBoard(eGameBoard& board, eCampaign& campaign,
 
     board.assignAllTerritory(cid);
 
-    struct eNullTile {
-        eTile* fTile = nullptr;
-    };
-
-    std::map<int, std::map<int, eNullTile>> tileMap;
-    std::vector<eTile*> halfSlopes;
-
-    struct eZeroInt {
-        int fV = 0;
-    };
-
-    const auto buildRoad = [&](eTile* const tile) {
-        const auto cid = tile->cityId();
-        const auto road = e::make_shared<eRoad>(board, cid);
-        tile->setUnderBuilding(road);
-        road->addUnderBuilding(tile);
-        road->setCenterTile(tile);
-        const int dx = tile->dx();
-        const int dy = tile->dy();
-        int x;
-        int y;
-        eTileHelper::dtileIdToTileId(dx, dy, x, y);
-        road->setTileRect({x, y, 1, 1});
-    };
-
-    for(int y = border; y < max; y++) {
-        const int start = (y < half) ? (border + half - y - 1) : (border + y - half);
-        const int end = (y < half) ? (half + y + 1 - border) : (3*half - y - border);
-        for(int x = start; x < end; x++) {
-            const uint32_t t_terrain = terrain->get(x, y);
-            // const uint8_t t_random = random->get(x, y);
-            // const uint8_t t_meadow = fertile->get(x, y);
-            const uint8_t t_scrub = scrub->get(x, y);
-            const uint8_t t_elevation = elevation->get(x, y);
-
-            const int dy = 2 + x + y - halfMapsize - (halfMapsize % 2 ? 0 : 1) - 2*border;
-            const int dx = mapsize / 2 + (x - y + (dy % 2 ? 0 : 1))/2 - 1 - shift;
-
-            const auto tile = board.dtile(dx, dy);
-
-            tileMap[y - border][x - border].fTile = tile;
-
-            if(!tile) continue;
-            tile->setRainforest(mAtlantean);
-            tile->setAltitude(t_elevation);
-
-            if(t_terrain & 0x1) {
-                tile->setTerrain(eTerrain::forest);
-            } else if(t_terrain & 0x2) {
-                if((t_terrain & 0x300002) == 0x100002) { // copper ore
-                    tile->setTerrain(eTerrain::copper);
-                } else if((t_terrain & 0x300002) == 0x200002) { // silver ore
-                    tile->setTerrain(eTerrain::silver);
-                } else { // normal (0x2) or cliff rock (0x300002)
-                    // or black marble quarry (0x120000) ??
-                    tile->setTerrain(eTerrain::flatStones);
-                }
-            } else if(t_terrain & 0x10000000 && (!(t_terrain & 0x8) || t_terrain & 0x40)) {
-                // sanctuary or pyramid
-            } else if(t_terrain & 0x8) { // building, fill in for boulevard or avenue
-            } else if(t_terrain & 0x20) { // park
-            } else if(t_terrain & 0x200) { // elevation
-                if(t_terrain & 8388608) {
-                    halfSlopes.push_back(tile);
-                }
-                if((t_terrain & 1536) == 1536) {
-                    tile->setWalkableElev(true);
-                }
-                if(t_terrain & 64) {
-                    buildRoad(tile);
-                }
-            } else if(t_terrain & 0x40) { // road
-                buildRoad(tile);
-            } else if(t_terrain & 0x4) { // water
-                if(t_terrain & 0x4000000) { // deep water
-                } else { // shallow water
-                }
-                tile->setTerrain(eTerrain::water);
-            } else if(t_terrain & 0x20000) { // marble quarry
-                if(t_terrain & 0x100000) { // black marble
-                } else { // normal marble
-                    tile->setTerrain(eTerrain::marble);
-                }
-            } else if((t_terrain & 0x300000) == 0x300000) { // orichalc
-                tile->setTerrain(eTerrain::orichalc);
-            } else if(t_terrain & 0x4000) { // wall
-            } else if(t_terrain & 0x800) { // meadow
-                tile->setTerrain(eTerrain::fertile);
-                tile->setScrub(0.01*t_scrub);
-            } else if(t_terrain & 0x80) { // beach / beach edge / scrub
-                if(t_terrain & 0x10000) { // beach sand
-                    tile->setTerrain(eTerrain::beach);
-                } else { // beach edge OR scrub
-                    if(t_scrub <= 0x18) {
-                    } else if(t_scrub <= 0x38) {
-                    } else if(t_scrub <= 0x48) {
-                    } else if(t_scrub <= 0x50) {
-                    } else {
-                    }
-                    tile->setScrub(0.01*t_scrub);
-                }
-            } else if(t_terrain & 0x40000) { // marshland
-                tile->setTerrain(eTerrain::marsh);
-            } else if(t_terrain & 0x1000000) { // molten lava
-            } else { // empty land
-                tile->setScrub(0.01*t_scrub);
-            }
-            if(t_terrain & 2147483648) { // land slide
-                tile->setLandSlideZone(true);
-            }
-            if(t_terrain & 256) { // tidal wave
-                tile->setTidalWaveZone(true);
-            }
-            if(t_terrain & 16) { // lava
-                tile->setLavaZone(true);
-            }
-		}
-	}
-
-    for(const auto tile : halfSlopes) {
-        const bool w = tile->walkableElev();
-        const int a = tile->altitude();
-        const auto ns = tile->diagonalNeighbours(nullptr);
-        for(const auto& n : ns) {
-            const auto ntile = static_cast<eTile*>(n.second);
-            if(w && !tile->hasRoad() && ntile->hasRoad()) buildRoad(tile);
-            const int na = ntile->altitude();
-            if(na == a + 1) {
-                tile->setDoubleAltitude(2*na - 1);
-            }
-        }
-    }
+    auto tileMap = sApplyTerrain(board, mapsize, mAtlantean,
+                                 *terrain, *scrub, *elevation);
 
     if(terrain) delete terrain;
     if(random) delete random;

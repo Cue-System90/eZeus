@@ -33,8 +33,22 @@ enum class eZeusFileVersion {
 class ZeusFile : public GameFile {
 	public:
 		static const int MAX_MAPS = 5; // parent city + 4 colonies
-		
+
         ZeusFile(const std::string& filename);
+
+        struct eNullTile {
+            eTile* fTile = nullptr;
+        };
+        using eOriginalTileMap = std::map<int, std::map<int, eNullTile>>;
+
+        // Sets the terrain of the tiles of board from the grids of an
+        // original map or saved game and returns the tile at each
+        // position relative to the map, as [y][x]
+        static eOriginalTileMap sApplyTerrain(
+                eGameBoard& board, const int mapsize, const bool atlantean,
+                const Grid<uint32_t>& terrain,
+                const Grid<uint8_t>& scrub,
+                const Grid<uint8_t>& elevation);
 
         void readVersion();
         eZeusFileVersion version() const { return mVersion; }

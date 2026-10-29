@@ -1110,6 +1110,8 @@ add_executable(eZeus
     pak/qfile.h
     pak/zeusfile.cpp
     pak/zeusfile.h
+    pak/zeussavefile.cpp
+    pak/zeussavefile.h
     pointers/eobject.cpp
     pointers/eobject.h
     pointers/estdpointer.h
@@ -2800,6 +2802,7 @@ add_executable(eZeus
     widgets/egamewidget.h
     widgets/egamewidgetbuild.cpp
     widgets/egamewidgetevents.cpp
+    widgets/egamewidgetimport.cpp
     widgets/egamewidgetinfo.cpp
     widgets/egamewidgetpaint.cpp
     widgets/egiftdialog.cpp

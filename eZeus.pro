@@ -518,6 +518,7 @@ SOURCES += \
         pak/pkwareinputstream.cpp \
         pak/qfile.cpp \
         pak/zeusfile.cpp \
+        pak/zeussavefile.cpp \
         pointers/eobject.cpp \
         pointers/estdselfref.cpp \
         spawners/eanimalspawner.cpp \
@@ -638,6 +639,7 @@ SOURCES += \
         widgets/egamewidget.cpp \
         widgets/egamewidgetbuild.cpp \
         widgets/egamewidgetevents.cpp \
+        widgets/egamewidgetimport.cpp \
         widgets/egamewidgetinfo.cpp \
         widgets/egamewidgetpaint.cpp \
         widgets/egiftdialog.cpp \
@@ -1281,6 +1283,7 @@ HEADERS += \
     pak/pkwareinputstream.h \
     pak/qfile.h \
     pak/zeusfile.h \
+    pak/zeussavefile.h \
     pointers/eobject.h \
     pointers/eobject.h \
     pointers/estdpointer.h \

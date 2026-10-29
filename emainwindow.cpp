@@ -13,6 +13,8 @@
 
 #include "audio/emusic.h"
 
+#include "pak/zeussavefile.h"
+
 #include "engine/ethreadpool.h"
 
 #include "egamedir.h"
@@ -199,6 +201,67 @@ std::string eMainWindow::leaderSaveDir() const {
     return eGameDir::saveDir() + mLeader + "/";
 }
 
+bool eMainWindow::importOriginalSave(const std::string& sav,
+                                     const std::string& out) {
+    const auto save = std::make_shared<ZeusSaveFile>(sav);
+    if(!save->load()) {
+        printf("Could not read the saved game '%s'\n", sav.c_str());
+        return false;
+    }
+    // the adventure lies in Adventures, the original ones with a character
+    // in front of the name, the others in a folder of their own
+    const auto pakName = save->adventure() + ".pak";
+    std::string pak;
+    const auto dir = eFsPath::sPath(eGameDir::pakAdventuresDir());
+    for(const auto& e : std::filesystem::recursive_directory_iterator(dir)) {
+        if(e.is_directory()) continue;
+        if(eFsPath::sUtf8(e.path().filename()) != pakName) continue;
+        pak = eFsPath::sUtf8(e.path());
+        break;
+    }
+    if(pak.empty()) {
+        printf("Could not find the adventure '%s'\n", pakName.c_str());
+        return false;
+    }
+
+    const auto c = std::make_shared<eCampaign>();
+    c->readPak(save->adventure(), pak);
+    c->startEpisode();
+    const auto board = c->currentEpisode()->fBoard;
+    // same rule as ZeusFile::loadBoard, a colony has another map size
+    const int mapsize = save->mapsize();
+    int boardW = mapsize/2;
+    if(boardW % 2) boardW++;
+    int boardH = mapsize + 1;
+    if(boardH % 2) boardH++;
+    if(!board || board->width() != boardW || board->height() != boardH) {
+        printf("'%s' is not the parent city of '%s', colonies are not "
+               "supported yet\n", sav.c_str(), pakName.c_str());
+        return false;
+    }
+    mCampaign = c;
+
+    startGameAction([this, save, sav, out]() {
+        eGameWidgetSettings settings;
+        settings.fPaused = true;
+        showGame(mCampaign, settings);
+        const auto report = mGW->importOriginalSave(*save);
+        printf("Imported '%s': %s\n", sav.c_str(), report.c_str());
+        if(!out.empty()) {
+            const bool r = saveGame(out);
+            if(!r) printf("Could not save '%s'\n", out.c_str());
+            mQuit = true;
+        }
+    });
+    return true;
+}
+
+void eMainWindow::setStartupImport(const std::string& sav,
+                                   const std::string& out) {
+    mImportSav = sav;
+    mImportOut = out;
+}
+
 void eMainWindow::clearWidgets() {
     if(mGW && mWidget != mGW) {
         mGW->setBoard(nullptr);
@@ -351,8 +414,23 @@ void eMainWindow::showRosterOfLeaders() {
 void eMainWindow::showMenuLoading() {
     const auto mlw = new eMenuLoadingWidget(this);
     mlw->setDoneAction([this]() {
+        if(!mImportSav.empty()) {
+            const bool r = importOriginalSave(mImportSav, mImportOut);
+            mImportSav.clear();
+            if(r) return;
+            if(!mImportOut.empty()) {
+                mQuit = true;
+                return;
+            }
+        }
         const auto ls = eRosterOfLeaders::sLeaders();
         if(ls.size() == 1) setLeader(ls[0]);
+        if(!mLoad.empty()) {
+            const bool r = loadGame(mLoad);
+            if(!r) printf("Could not load '%s'\n", mLoad.c_str());
+            mLoad.clear();
+            if(r) return;
+        }
         if(mLeader.empty()) {
             showRosterOfLeaders();
         } else {

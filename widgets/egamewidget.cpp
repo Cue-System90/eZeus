@@ -1117,6 +1117,7 @@ void eGameWidget::showMessage(eEventData& ed,
 
 void eGameWidget::showTip(const ePlayerCityTarget& target,
                           const std::string& tip) {
+    if(mImporting) return;
     for(const auto& t : mTips) {
         if(t.fText == tip && t.fTarget == target) return;
     }
