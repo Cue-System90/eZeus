@@ -43,7 +43,9 @@ bool eCharacter::canFight(eCharacter* const c) {
     if(at == eCharacterActionType::fight ||
        at == eCharacterActionType::fight2) return false;
     if(t == eCharacterType::disgruntled) {
-        if(ct == eCharacterType::watchman) return true;
+        // Nobles take outlaws off the streets just like watchmen do
+        if(ct == eCharacterType::watchman ||
+           ct == eCharacterType::eliteCitizen) return true;
         else if(eRand::rand() % 10) return false;
     }
     if(isSoldier()) {

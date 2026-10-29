@@ -3,12 +3,14 @@
 
 #include "eactionwithcomeback.h"
 
-class eSmallHouse;
+class eHouseBase;
 
+// One walk out of a house and back, used by the sick and disgruntled
+// of common housing and by the nobles of elite housing.
 class eSickDisgruntledAction : public eActionWithComeback {
 public:
     eSickDisgruntledAction(eCharacter* const c,
-                           eSmallHouse* const ch);
+                           eHouseBase* const ch);
 
     bool decide() override;
 
@@ -19,7 +21,7 @@ protected:
     void goBackDecision(const stdsptr<eWalkableObject>& w =
                             eWalkableObject::sCreateRoadAvenue());
 private:
-    eSmallHouse* mBuilding = nullptr;
+    eHouseBase* mBuilding = nullptr;
 
     bool mGoBackNext = false;
 };

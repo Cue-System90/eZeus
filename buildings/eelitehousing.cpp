@@ -6,6 +6,8 @@
 #include "elanguage.h"
 #include "enumbers.h"
 #include "buildings/epalace.h"
+#include "characters/eelitecitizen.h"
+#include "characters/actions/esickdisgruntledaction.h"
 
 #include <algorithm>
 #include <cmath>
@@ -14,6 +16,10 @@ eEliteHousing::eEliteHousing(eGameBoard& board,
                              const eCityId cid) :
     eHouseBase(board, eBuildingType::eliteHousing,
                4, 4, {6, 6, 10, 16, 20}, cid) {}
+
+eEliteHousing::~eEliteHousing() {
+    if(mElite) mElite->kill();
+}
 
 eTextureSpace eEliteHousing::getTextureSpace(
         const int tx, const int ty,
@@ -220,7 +226,25 @@ void eEliteHousing::timeChanged(const int by) {
         mUpdateLevel -= lupdate;
         updateLevel();
     }
+    if(mPeople > 0 && !mElite) {
+        mSpawnElite += by;
+        if(mSpawnElite > eNumbers::sPatrolerWaitTime) {
+            mSpawnElite = 0;
+            spawnEliteCitizen();
+        }
+    }
     eHouseBase::timeChanged(by);
+}
+
+void eEliteHousing::spawnEliteCitizen() {
+    const auto ts = surroundingRoad(false, true);
+    if(ts.empty()) return;
+    const auto c = e::make_shared<eEliteCitizen>(getBoard());
+    mElite = c.get();
+    c->setBothCityIds(cityId());
+    c->changeTile(ts[eRand::rand() % ts.size()]);
+    const auto a = e::make_shared<eSickDisgruntledAction>(c.get(), this);
+    c->setAction(a);
 }
 
 void eEliteHousing::nextMonth() {
@@ -304,6 +328,12 @@ void eEliteHousing::read(eReadStream& src) {
     src >> mWine;
     src >> mArms;
     src >> mHorses;
+    if(src.formatVersion() >= eFileFormat::eliteCitizen) {
+        src >> mSpawnElite;
+        src.readCharacter(&getBoard(), [this](eCharacter* const c) {
+            mElite = static_cast<eEliteCitizen*>(c);
+        });
+    }
 }
 
 void eEliteHousing::write(eWriteStream& dst) const {
@@ -312,6 +342,8 @@ void eEliteHousing::write(eWriteStream& dst) const {
     dst << mWine;
     dst << mArms;
     dst << mHorses;
+    dst << mSpawnElite;
+    dst.writeCharacter(mElite.get());
 }
 
 std::string eEliteHousing::sName(const int level) {

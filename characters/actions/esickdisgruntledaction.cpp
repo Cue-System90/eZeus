@@ -1,12 +1,13 @@
 #include "esickdisgruntledaction.h"
 
 #include "../echaracter.h"
-#include "buildings/esmallhouse.h"
+#include "buildings/ehousebase.h"
 #include "epatrolmoveaction.h"
 #include "emovearoundaction.h"
+#include "enumbers.h"
 
 eSickDisgruntledAction::eSickDisgruntledAction(eCharacter* const c,
-                                               eSmallHouse* const ch) :
+                                               eHouseBase* const ch) :
     eActionWithComeback(c, ch ? ch->centerTile() : nullptr,
                         eCharActionType::sickDisgruntledAction),
     mBuilding(ch) {
@@ -29,7 +30,7 @@ void eSickDisgruntledAction::read(eReadStream& src) {
     eActionWithComeback::read(src);
 
     src.readBuilding(&board(), [this](eBuilding* const b) {
-        mBuilding = static_cast<eSmallHouse*>(b);
+        mBuilding = static_cast<eHouseBase*>(b);
     });
     src >> mGoBackNext;
 }
@@ -48,10 +49,14 @@ void eSickDisgruntledAction::patrol() {
     if(!t) return;
     c->setActionType(eCharacterActionType::walk);
     if(t->hasRoad()) {
+        // Nobles wander without a goal like watchmen do,
+        // so they turn back at roadblocks
+        const bool elite = c->type() == eCharacterType::eliteCitizen;
+        const auto walkable = elite ? eWalkableObject::sCreateRoadblock() :
+                                      eWalkableObject::sCreateRoad();
         const auto a = e::make_shared<ePatrolMoveAction>(
-                           c, true,
-                           eWalkableObject::sCreateRoad());
-        a->setMaxWalkDistance(50);
+                           c, true, walkable);
+        a->setMaxWalkDistance(elite ? eNumbers::sPatrolerMaxDistance : 50);
         setCurrentAction(a);
     } else {
         auto walkable = eWalkableObject::sCreateDefault();

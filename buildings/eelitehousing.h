@@ -3,9 +3,12 @@
 
 #include "ehousebase.h"
 
+class eEliteCitizen;
+
 class eEliteHousing : public eHouseBase {
 public:
     eEliteHousing(eGameBoard& board, const eCityId cid);
+    ~eEliteHousing();
 
     std::shared_ptr<eTexture>
     getTexture(const eTileSize) const override { return nullptr; }
@@ -60,12 +63,16 @@ private:
             const eTileSize size) const;
 
     void updateLevel();
+    void spawnEliteCitizen();
 
     int mUpdateLevel = 0;
 
     int mWine = 0;
     int mArms = 0;
     int mHorses = 0;
+
+    int mSpawnElite = 0;
+    stdptr<eEliteCitizen> mElite;
 };
 
 #endif // EELITEHOUSING_H
