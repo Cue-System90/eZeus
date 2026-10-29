@@ -74,6 +74,7 @@ bool eMainWindow::initialize(const eSettings& settings) {
     setResolution(res);
     setFullscreen(settings.fFullscreen);
     mSettings = settings;
+    fitResolutionToWindow();
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     SDL_StartTextInput(); // needed for SDL_TEXTINPUT events
 
@@ -117,6 +118,25 @@ void eMainWindow::setFullscreen(const bool f) {
     mFirstFullscrenSetting = false;
     mSettings.fFullscreen = f;
     SDL_SetWindowFullscreen(mSdlWindow, f ? SDL_WINDOW_FULLSCREEN : 0);
+}
+
+void eMainWindow::fitResolutionToWindow() {
+    const int w = mSettings.fRes.width();
+    const int h = mSettings.fRes.height();
+    if(mSettings.fFullscreen) {
+        // A fullscreen window gets the closest mode the screen offers,
+        // which is not the chosen one when the screen lacks it. A TV
+        // without 16:10 modes turns 1440x900 into 1600x900, and the game
+        // laid out for 1440 left a strip of bare map next to the panel.
+        SDL_DisplayMode mode;
+        if(SDL_GetWindowDisplayMode(mSdlWindow, &mode) != 0) return;
+        if(mode.w == w && mode.h == h) return;
+        mSettings.fRes = eResolution(mode.w, mode.h);
+    } else {
+        // leaving fullscreen restores the windowed size, which may still be
+        // the one chosen before a fullscreen mode replaced it
+        SDL_SetWindowSize(mSdlWindow, w, h);
+    }
 }
 
 void eMainWindow::startGameAction(eGameBoard* const board,
@@ -402,11 +422,13 @@ void eMainWindow::showSettingsMenu() {
     esm->resize(width(), height());
 
     const auto applyA = [this](const eSettings& settings) {
-        const bool loadNeeded = settings.fRes != mSettings.fRes;
+        const auto oldRes = mSettings.fRes;
         const bool languageChanged = settings.fLanguage != mSettings.fLanguage;
         setResolution(settings.fRes);
         setFullscreen(settings.fFullscreen);
         mSettings = settings;
+        fitResolutionToWindow();
+        const bool loadNeeded = mSettings.fRes != oldRes;
         mSettings.write();
         if(languageChanged) {
             // the code page of the original game's text files depends on

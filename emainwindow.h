@@ -85,6 +85,7 @@ public:
     std::string leaderSaveDir() const;
 private:
     void clearWidgets();
+    void fitResolutionToWindow();
 
     eSettings mSettings;
 
