@@ -418,6 +418,8 @@ public:
 
     using eGoals = std::vector<stdsptr<eEpisodeGoal>>;
     const eGoals& goals() const { return mGoals; }
+    // without goals an episode never ends
+    void clearGoals() { mGoals.clear(); }
 
     void read(eReadStream& src);
     void write(eWriteStream& dst) const;

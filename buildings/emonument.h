@@ -39,6 +39,8 @@ public:
 
     int progress() const; // 0-100
     bool finished() const;
+    // builds every element at once, as if the materials had arrived
+    void finishConstruction();
 
     eSanctCost cost() const;
     const eSanctCost& stored() const { return mStored; }

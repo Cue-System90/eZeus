@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <cstdlib>
 #include <map>
 #include <set>
 
@@ -143,8 +144,9 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
                                          save.terrain(), save.scrub(),
                                          save.elevation());
     // tiles under buildings carry the building flag in front of everything
-    // else, so the road through an agora or under a roadblock and the
-    // meadow under farms and orchards have to be brought back
+    // else, so the road through an agora or under a roadblock, the water
+    // under fisheries and piers and the meadow under farms and orchards
+    // have to be brought back
     const int border = (228 - save.mapsize())/2;
     for(auto& row : tiles) {
         for(auto& col : row.second) {
@@ -159,6 +161,8 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
                 road->addUnderBuilding(t);
                 road->setCenterTile(t);
                 road->setTileRect({t->x(), t->y(), 1, 1});
+            } else if(terr & 0x4) {
+                t->setTerrain(eTerrain::water);
             } else if(terr & 0x800) {
                 t->setTerrain(eTerrain::fertile);
             }
@@ -210,6 +214,7 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
 
     const bool editorMode = mEditorMode;
     const bool rotate = mRotate;
+    const int tradeCityId = mGm->tradeCityId();
     mEditorMode = true;
     mImporting = true;
     const auto buildWithMode = [&](const eBuildingMode mode,
@@ -329,9 +334,51 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
         return true;
     };
 
-    std::vector<const eZeusSaveBuilding*> houses;
+    // A pier or trade post trades with the city its subtype counts to in
+    // the world of the adventure. When that city does not fit, by water or
+    // by land, the first city that does takes its place.
+    const auto& cities = board.world().cities();
+    const auto tradeCity = [&](const int index, const bool water) {
+        const int n = cities.size();
+        const auto fits = [&](const int i) {
+            if(i < 0 || i >= n) return false;
+            const auto& c = cities[i];
+            return c->cityId() != cid && c->trades() &&
+                   c->waterTrade(cid) == water;
+        };
+        if(fits(index)) return index;
+        for(int i = 0; i < n; i++) {
+            if(fits(i)) return i;
+        }
+        return -1;
+    };
+    const auto addGoods = [](eBuilding* const to,
+                             const std::vector<const eZeusSaveBuilding*>& parts) {
+        const auto s = dynamic_cast<eStorageBuilding*>(to);
+        if(!s) return;
+        for(const auto p : parts) {
+            for(const auto& g : p->fGoods) {
+                s->addNotAccept(g.first, g.second);
+            }
+        }
+    };
+
+    // a part comes with the first part of its building
+    std::vector<const eZeusSaveBuilding*> heads;
     for(const auto& b : save.buildings()) {
-        if(b.fPrev) continue; // a part, handled with its first part
+        if(!b.fPrev) heads.push_back(&b);
+    }
+    // The blueprints of eZeus' sanctuaries are larger than the original
+    // ones. They raise the appeal of everything around, so they go first
+    // and take the room they need, from the buildings placed after them.
+    std::stable_partition(heads.begin(), heads.end(),
+                          [](const eZeusSaveBuilding* const b) {
+        return b->fType >= 84 && b->fType <= 97;
+    });
+
+    std::vector<const eZeusSaveBuilding*> houses;
+    for(const auto bp : heads) {
+        const auto& b = *bp;
         const int type = b.fType;
         const auto parts = chain(b);
         SDL_Rect r;
@@ -343,6 +390,29 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
             ok = rectOf({&b}, r) && placeTree(b, r);
         } else if(type == 63 || type == 64) {
             ok = placeAgora(b, parts);
+        } else if(type == 60 || type == 62) {
+            // a pier comes with a trade post on land, which eZeus places
+            // itself, a trade post alone is the head and its spaces
+            const bool pier = type == 60;
+            const int ct = tradeCity(b.fSubtype, pier);
+            ok = ct != -1 && (pier ? rectOf({&b}, r) : rectOf(parts, r));
+            if(ok) {
+                mGm->setTradeCityId(ct);
+                int tx;
+                int ty;
+                sAnchor(r, tx, ty);
+                const auto mode = pier ? eBuildingMode::pier :
+                                         eBuildingMode::tradePost;
+                buildWithMode(mode, tx, ty);
+                const auto btype = pier ? eBuildingType::pier :
+                                          eBuildingType::tradePost;
+                ok = placedAt(r.x, r.y, btype);
+                if(ok) {
+                    auto bb = board.tile(r.x, r.y)->underBuilding();
+                    if(pier) bb = static_cast<ePier*>(bb)->tradePost();
+                    if(bb) addGoods(bb, parts);
+                }
+            }
         } else if(type == 119) {
             // the kind of commemorative monument, counted from 1
             const int id = std::clamp(b.fSubtype - 1, 0, 8);
@@ -357,18 +427,70 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
             }
         } else if(type >= 84 && type <= 97) {
             // eZeus lays a sanctuary out from a blueprint of its own, which
-            // differs in size from the original, centered at the cursor
+            // differs in size from the original, centered at the cursor.
+            // Where it does not fit over the original, the nearest place
+            // it fits at is taken.
             const auto mode = sModeForType(type);
             ok = rectOf(parts, r);
             if(ok) {
-                const auto before = board.sanctuaries(cid).size();
-                const bool wide = r.w >= r.h;
-                for(const bool rot : {!wide, wide}) {
-                    mRotate = rot;
-                    buildWithMode(mode, r.x + r.w/2, r.y + r.h/2);
-                    if(board.sanctuaries(cid).size() > before) break;
+                // the original stands on a raised platform, which comes in
+                // as a slope eZeus does not build on, so the ground is
+                // levelled to the height most common around it first
+                std::set<eTile*> ground;
+                for(const auto p : parts) {
+                    for(int i = 0; i < p->fSize; i++) {
+                        for(int j = 0; j < p->fSize; j++) {
+                            const auto t = tiles[p->fY + j][p->fX + i].fTile;
+                            if(t) ground.insert(t);
+                        }
+                    }
                 }
-                ok = board.sanctuaries(cid).size() > before;
+                std::map<int, int> around;
+                for(const auto t : ground) {
+                    for(int dx = -1; dx <= 1; dx++) {
+                        for(int dy = -1; dy <= 1; dy++) {
+                            const auto n = t->tileRel<eTile>(dx, dy);
+                            if(n && !ground.count(n)) around[n->altitude()]++;
+                        }
+                    }
+                }
+                int level = 0;
+                int most = 0;
+                for(const auto& a : around) {
+                    if(a.second > most) {
+                        most = a.second;
+                        level = a.first;
+                    }
+                }
+                for(const auto t : ground) t->setAltitude(level);
+
+                const auto before = board.sanctuaries(cid).size();
+                const auto built = [&]() {
+                    return board.sanctuaries(cid).size() > before;
+                };
+                const bool wide = r.w >= r.h;
+                const int cx = r.x + r.w/2;
+                const int cy = r.y + r.h/2;
+                const int maxD = 6;
+                for(int d = 0; d <= maxD && !built(); d++) {
+                    for(int dx = -d; dx <= d && !built(); dx++) {
+                        for(int dy = -d; dy <= d && !built(); dy++) {
+                            if(std::max(std::abs(dx), std::abs(dy)) != d) continue;
+                            for(const bool rot : {!wide, wide}) {
+                                mRotate = rot;
+                                buildWithMode(mode, cx + dx, cy + dy);
+                                if(built()) {
+                                    if(d) printf("sanctuary %d moved by %d,%d\n",
+                                                 type, dx, dy);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                ok = built();
+                // the original sanctuary stood finished
+                if(ok) board.sanctuaries(cid).back()->finishConstruction();
             }
         } else if(type == 117) {
             // two 4x4 halves, the tiles around them come with eZeus' palace
@@ -412,13 +534,7 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
                 }
                 if(ok && (type == 57 || type == 58)) {
                     const auto t = board.tile(r.x + r.w - 1, r.y + r.h - 1);
-                    const auto s = static_cast<eStorageBuilding*>(
-                                       t->underBuilding());
-                    for(const auto p : parts) {
-                        for(const auto& g : p->fGoods) {
-                            s->addNotAccept(g.first, g.second);
-                        }
-                    }
+                    addGoods(t->underBuilding(), parts);
                 }
             }
         }
@@ -453,7 +569,14 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
                "->" + std::to_string(h->level())]++;
     }
 
+    board.setDrachmas(pid, save.drachmas());
+    // The city comes from some episode of the adventure, the goals from the
+    // first one, which it may well have met already. An imported city is
+    // one to test with, so it plays on without goals.
+    board.clearGoals();
+
     mGm->clearMode();
+    mGm->setTradeCityId(tradeCityId);
     mRotate = rotate;
     mEditorMode = editorMode;
     mImporting = false;

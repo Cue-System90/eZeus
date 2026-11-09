@@ -51,6 +51,7 @@ public:
                     const eAction& goalsView);
 
     int tradeCityId() const { return mTradeCityId; }
+    void setTradeCityId(const int id) { mTradeCityId = id; }
     eBuildingMode mode() const { return mMode; }
     void setMode(const eBuildingMode mode);
     void clearMode() { mMode = eBuildingMode::none; }

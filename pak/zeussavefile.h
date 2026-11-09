@@ -41,6 +41,7 @@ public:
     const std::string& adventure() const { return mAdventure; }
     int mapsize() const { return mMapsize; }
     bool poseidon() const { return mPoseidon; }
+    int drachmas() const { return mDrachmas; }
 
     const Grid<uint32_t>& terrain() const { return *mTerrain; }
     const Grid<uint8_t>& scrub() const { return *mScrub; }
@@ -55,6 +56,7 @@ private:
     std::string mAdventure;
     int mMapsize = 0;
     bool mPoseidon = false;
+    int mDrachmas = 0;
 
     std::unique_ptr<Grid<uint32_t>> mTerrain;
     std::unique_ptr<Grid<uint8_t>> mScrub;

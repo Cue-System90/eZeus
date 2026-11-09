@@ -209,3 +209,12 @@ int eMonument::progress() const {
 bool eMonument::finished() const {
     return progress() >= 100;
 }
+
+void eMonument::finishConstruction() {
+    const auto elements = mElements;
+    for(const auto& e : elements) {
+        while(e->incProgress()) {}
+    }
+    // every step takes its materials from the store, which had none
+    mStored = eSanctCost{0, 0, 0};
+}

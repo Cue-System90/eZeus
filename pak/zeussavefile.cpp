@@ -13,7 +13,15 @@ bool ZeusSaveFile::load() {
     const int gridSize = MAX_MAPSIZE*MAX_MAPSIZE;
 
     seek(0x1779);
-    skipCompressed(); // 19184 bytes
+    { // 19184 bytes of city data
+        const auto city = readCompressed();
+        const auto readInt = [&city](const size_t i) {
+            if(i + 4 > city.size()) return 0;
+            return static_cast<int>(city[i] | (city[i + 1] << 8) |
+                                    (city[i + 2] << 16) | (city[i + 3] << 24));
+        };
+        mDrachmas = readInt(12); // the population follows at 36
+    }
     skipBytes(8);
     skipCompressed(); // 12584 bytes
     skipBytes(188);
