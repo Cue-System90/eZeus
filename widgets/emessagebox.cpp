@@ -67,6 +67,7 @@ void eMessageBox::initialize(eGameBoard& board,
 
         const auto title = new eLabel(msg.fTitle, window());
         title->setHugeFontSize();
+        title->fitFontToWidth(width() - 2*p - 2*title->padding());
         title->fitContent();
         w0->addWidget(title);
         w0->fitContent();
