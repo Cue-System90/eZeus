@@ -111,6 +111,7 @@ private:
     std::string mLoad;
     int mAutoplayMonths = 0;
     int mAutoplayMonth = -1;
+    int mAutoplayStillFrames = 0;
     std::string mAutoplayWaiting;
 
     bool mQuit = false;

@@ -266,7 +266,14 @@ void eMainWindow::setStartupImport(const std::string& sav,
 }
 
 void eMainWindow::autoplay() {
-    if(!mGW || !mBoard || mWidget != mGW) return;
+    const bool inGame = mGW && mBoard && mWidget == mGW;
+    if(mAutoplayMonth != -1 && !inGame) {
+        // another screen took over, like the end of an episode
+        printf("autoplay: the game left the city, ending\n");
+        mQuit = true;
+        return;
+    }
+    if(!inGame) return;
     // the viewed city is known after the first frame
     if(mGW->viewedCity() == eCityId::neutralFriendly) return;
     // messages stop the time, a decision there is left to a player
@@ -284,7 +291,17 @@ void eMainWindow::autoplay() {
         printCitySummary();
         return;
     }
-    if(month == mAutoplayMonth) return;
+    if(month == mAutoplayMonth) {
+        // a month takes about a second at the highest speed
+        if(++mAutoplayStillFrames == 3000) {
+            const auto by = mGW->timeStoppedBy();
+            printf("autoplay: no month passed, time stopped by %s, ending\n",
+                   by.empty() ? "nothing known" : by.c_str());
+            mQuit = true;
+        }
+        return;
+    }
+    mAutoplayStillFrames = 0;
     mAutoplayMonth = month;
     printCitySummary();
     if(--mAutoplayMonths == 0) mQuit = true;
@@ -303,9 +320,12 @@ void eMainWindow::printCitySummary() const {
         return t == eBuildingType::commonHouse ||
                t == eBuildingType::eliteHousing;
     });
+    // what keeps the houses from the next level
+    std::map<eHouseMissing, int> missing;
     for(const auto bb : houses) {
         const auto h = static_cast<eHouseBase*>(bb);
         people += h->people();
+        if(h->people() > 0) missing[h->missing()]++;
         if(h->type() == eBuildingType::commonHouse) {
             common[h->level()]++;
         } else {
@@ -328,13 +348,25 @@ void eMainWindow::printCitySummary() const {
         }
         return s;
     };
+    const char* const missingNames[] = {"water", "food", "fleece", "oil",
+                                        "venues", "appeal", "wine", "arms",
+                                        "horse", "nothing"};
+    std::string missingStr;
+    for(const auto& m : missing) {
+        missingStr += std::string(" ") + missingNames[static_cast<int>(m.first)] +
+                      ":" + std::to_string(m.second);
+    }
+    const auto emp = mBoard->employmentData(cid);
     const auto& d = b.date();
-    printf("%d/%02d people %d drachmas %d | common%s | elite%s | "
+    printf("%d/%02d people %d drachmas %d | common%s | elite%s | missing%s | "
+           "workers %d jobs %d | "
            "soldiers %d hoplites %d horsemen | nobles %d watchmen %d "
            "disgruntled %d\n",
            d.year(), static_cast<int>(d.month()) + 1, people,
            b.drachmas(b.personPlayer()), levels(common).c_str(),
-           levels(elite).c_str(), hoplites, horsemen,
+           levels(elite).c_str(), missingStr.c_str(),
+           emp ? emp->employable() : 0, emp ? emp->totalJobVacancies() : 0,
+           hoplites, horsemen,
            chars[eCharacterType::eliteCitizen],
            chars[eCharacterType::watchman],
            chars[eCharacterType::disgruntled]);

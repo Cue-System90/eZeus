@@ -150,6 +150,8 @@ public:
     // Closes the message box on screen, which stops the time, unless it
     // asks for a decision. Returns the title of the box left open.
     std::string closeMessage();
+    // what keeps the time from running, empty when it runs
+    std::string timeStoppedBy() const;
 
     void centerDialog(eWidget* const d);
     void openDialog(eWidget* const d) override;

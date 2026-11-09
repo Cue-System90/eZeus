@@ -1764,6 +1764,17 @@ std::string eGameWidget::closeMessage() {
     return "";
 }
 
+std::string eGameWidget::timeStoppedBy() const {
+    // the same conditions as the time step in paintEvent
+    if(mPaused) return "pause";
+    if(mLocked) return "locked";
+    if(mMsgBox) return "message: " + mMsgBox->title();
+    if(mInfoWidget) return "info widget";
+    const int nc = children().size() - mTips.size();
+    if(nc >= 6) return std::to_string(nc) + " open widgets";
+    return "";
+}
+
 void eGameWidget::switchPause() {
     mPaused = !mPaused;
     if(mPaused && !mPausedLabel) {
