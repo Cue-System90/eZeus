@@ -7,6 +7,11 @@
 struct eHeat {
     int fValue;
     int fRange;
+    // Desirability as Zeus spreads it: in square rings around the
+    // building, the value changes by fStepSize every fStep rings. Without
+    // steps the value falls off linearly towards the range.
+    int fStep = 0;
+    int fStepSize = 0;
 };
 
 class eHeatMap {
@@ -47,6 +52,10 @@ public:
     void set(const int x, const int y,
              const bool e, const double h);
 private:
+    void addRings(const eHeat& a,
+                  const int ax, const int ay,
+                  const int sw, const int sh);
+
     int mDX = 0;
     int mDY = 0;
     int mWidth = 0;

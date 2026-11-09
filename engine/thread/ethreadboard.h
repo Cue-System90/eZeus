@@ -16,6 +16,9 @@ public:
 
     std::vector<eThreadBuilding>& finishedMonuments()
     { return mFinishedMonuments; }
+    // the tiles of an agora carry its stalls, not the agora
+    std::vector<eThreadBuilding>& agoras()
+    { return mAgoras; }
 
     int state() const { return mState; }
     void setState(const int s) { mState = s; }
@@ -76,6 +79,7 @@ private:
     int mHeight = 0;
     std::vector<std::vector<eThreadTile>> mTiles;
     std::vector<eThreadBuilding> mFinishedMonuments;
+    std::vector<eThreadBuilding> mAgoras;
 };
 
 #endif // ETHREADBOARD_H

@@ -1,4 +1,5 @@
 #include "eboardcity.h"
+#include "edifficulty.h"
 
 #include "buildings/ebuilding.h"
 #include "buildings/eemployingbuilding.h"
@@ -393,9 +394,12 @@ bool eBoardCity::replace3By3AestheticByCommemorative() {
                     const auto ub = tile->underBuilding();
                     if(!ub) continue;
                     if(const auto h = dynamic_cast<eHouseBase*>(ub)) {
+                        // enough to keep the highest level
+                        const bool elite = type == eBuildingType::eliteHousing;
+                        const auto diff = mBoard.difficulty(owningPlayerId());
                         const double goodAppeal =
-                                type == eBuildingType::eliteHousing ?
-                                    10.1 : 8.1;
+                                eDifficultyHelpers::houseAppealToKeep(
+                                    diff, elite, elite ? 4 : 6);
                         const double a = h->appeal();
                         const double missing = goodAppeal - a;
                         if(missing > mostMissingAppeal) {

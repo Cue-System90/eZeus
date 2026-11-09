@@ -36,6 +36,13 @@ namespace eDifficultyHelpers {
     int taxMultiplier(const eDifficulty diff,
                       const eBuildingType type,
                       const int level);
+
+    // The appeal a house needs to keep a level, or to rise from it to the
+    // next one, as in the Model\Zeus_Model_*.txt files of the original.
+    int houseAppealToKeep(const eDifficulty diff,
+                          const bool elite, const int level);
+    int houseAppealToRise(const eDifficulty diff,
+                          const bool elite, const int level);
     int taxSentiment(const eDifficulty diff,
                      const eTaxRate taxRate);
 

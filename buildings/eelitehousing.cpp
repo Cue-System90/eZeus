@@ -296,43 +296,20 @@ eHouseMissing eEliteHousing::missing() const {
     if(mActors > 0) nVenues++;
     if(mAthletes > 0) nVenues++;
     if(mCompetitors > 0) nVenues++;
-    if(mFood > 0) {
-        if(mFleece > 0) {
-            if(mOil > 0) {
-                if(nVenues > 2) {
-                    if(appeal > 5.0) {
-                        if(mArms > 0) {
-                            if(appeal > 7.0) {
-                                if(mWine > 0) {
-                                    if(appeal > 9.0) {
-                                        if(mHorses > 0) {
-                                            if(nVenues > 3) {
-                                                if(appeal > 10.) {
-                                                    return eHouseMissing::nothing;
-                                                }
-                                                return eHouseMissing::appeal;
-                                            }
-                                            return eHouseMissing::venues;
-                                        }
-                                        return eHouseMissing::horse;
-                                    }
-                                    return eHouseMissing::appeal;
-                                }
-                                return eHouseMissing::wine;
-                            }
-                            return eHouseMissing::appeal;
-                        }
-                        return eHouseMissing::arms;
-                    }
-                    return eHouseMissing::appeal;
-                }
-                return eHouseMissing::venues;
-            }
-            return eHouseMissing::oil;
-        }
-        return eHouseMissing::fleece;
-    }
-    return eHouseMissing::food;
+    // in the order updateLevel climbs the levels
+    if(mFood <= 0) return eHouseMissing::food;
+    if(mFleece <= 0) return eHouseMissing::fleece;
+    if(mOil <= 0) return eHouseMissing::oil;
+    if(nVenues < 3) return eHouseMissing::venues;
+    if(!appealAllows(appeal, 1)) return eHouseMissing::appeal;
+    if(mArms <= 0) return eHouseMissing::arms;
+    if(!appealAllows(appeal, 2)) return eHouseMissing::appeal;
+    if(mWine <= 0) return eHouseMissing::wine;
+    if(!appealAllows(appeal, 3)) return eHouseMissing::appeal;
+    if(mHorses <= 0) return eHouseMissing::horse;
+    if(nVenues < 4) return eHouseMissing::venues;
+    if(!appealAllows(appeal, 4)) return eHouseMissing::appeal;
+    return eHouseMissing::nothing;
 }
 
 void eEliteHousing::read(eReadStream& src) {
@@ -385,10 +362,13 @@ void eEliteHousing::updateLevel() {
     if(mActors > 0) nVenues++;
     if(mAthletes > 0) nVenues++;
     if(mCompetitors > 0) nVenues++;
-    if(mFood > 0 && mFleece > 0 && mOil > 0 && nVenues > 2 && appeal > 5.0) {
-        if(mArms > 0 && appeal > 7.0) {
-            if(mWine > 0 && appeal > 9.0) {
-                if(mHorses > 0 && nVenues > 3 && appeal > 10.0) {
+    const auto a = [&](const int level) {
+        return appealAllows(appeal, level);
+    };
+    if(mFood > 0 && mFleece > 0 && mOil > 0 && nVenues > 2 && a(1)) {
+        if(mArms > 0 && a(2)) {
+            if(mWine > 0 && a(3)) {
+                if(mHorses > 0 && nVenues > 3 && a(4)) {
                     return setLevel(4);
                 }
                 return setLevel(3);

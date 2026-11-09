@@ -84,6 +84,7 @@ void eHeatMap::addHeat(const eHeat& a,
                        const int sw, const int sh) {
     const int r = a.fRange;
     if(r <= 0) return;
+    if(a.fStep > 0) return addRings(a, ax, ay, sw, sh);
     const double v = a.fValue;
     for(int x = ax - r; x <= ax + sw + r; x++) {
         for(int y = ay - r; y <= ay + sh + r; y++) {
@@ -100,6 +101,38 @@ void eHeatMap::addHeat(const eHeat& a,
             int dty;
             eTileHelper::tileIdToDTileId(x, y, dtx, dty);
             addHeat(dtx, dty, mult*v);
+        }
+    }
+}
+
+void eHeatMap::addRings(const eHeat& a,
+                        const int ax, const int ay,
+                        const int sw, const int sh) {
+    // As Zeus does it, read off the desirability grid of its saved games:
+    // the first ring touches the building, the building itself gets
+    // nothing, and every tile stays within -100 and 100.
+    const int range = std::min(a.fRange, 6);
+    int value = a.fValue;
+    int ringsInStep = 0;
+    for(int k = 1; k <= range; k++) {
+        for(int x = ax - k; x < ax + sw + k; x++) {
+            for(int y = ay - k; y < ay + sh + k; y++) {
+                const int ring = std::max({ax - x, x - (ax + sw - 1),
+                                           ay - y, y - (ay + sh - 1)});
+                if(ring != k) continue;
+                int dtx;
+                int dty;
+                eTileHelper::tileIdToDTileId(x, y, dtx, dty);
+                if(dtx < mDX || dty < mDY ||
+                   dtx >= mWidth + mDX || dty >= mHeight + mDY) continue;
+                auto& tile = mMap[dtx - mDX][dty - mDY];
+                tile.fEnabled = true;
+                tile.fAppeal = std::clamp(tile.fAppeal + value, -100., 100.);
+            }
+        }
+        if(++ringsInStep >= a.fStep) {
+            value += a.fStepSize;
+            ringsInStep = 0;
         }
     }
 }

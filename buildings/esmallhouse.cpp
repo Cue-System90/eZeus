@@ -308,37 +308,21 @@ eHouseMissing eSmallHouse::missing() const {
     if(mActors > 0) nVenues++;
     if(mAthletes > 0) nVenues++;
     if(mCompetitors > 0) nVenues++;
-    if(mFood > 0) {
-        if(mWater > 0) {
-            if(nVenues > 0) {
-                if(mFleece > 0) {
-                    if(appeal > 2.0) {
-                        if(nVenues > 1) {
-                            if(mOil > 0) {
-                                if(appeal > 5.0) {
-                                    if(nVenues > 2) {
-                                        if(appeal > 8.0) {
-                                            return eHouseMissing::nothing;
-                                        }
-                                        return eHouseMissing::appeal;
-                                    }
-                                    return eHouseMissing::venues;
-                                }
-                                return eHouseMissing::appeal;
-                            }
-                            return eHouseMissing::oil;
-                        }
-                        return eHouseMissing::venues;
-                    }
-                    return eHouseMissing::appeal;
-                }
-                return eHouseMissing::fleece;
-            }
-            return eHouseMissing::venues;
-        }
-        return eHouseMissing::water;
-    }
-    return eHouseMissing::food;
+    // in the order updateLevel climbs the levels
+    if(mFood <= 0) return eHouseMissing::food;
+    if(!appealAllows(appeal, 1)) return eHouseMissing::appeal;
+    if(mWater <= 0) return eHouseMissing::water;
+    if(nVenues < 1) return eHouseMissing::venues;
+    if(!appealAllows(appeal, 2)) return eHouseMissing::appeal;
+    if(mFleece <= 0) return eHouseMissing::fleece;
+    if(!appealAllows(appeal, 3)) return eHouseMissing::appeal;
+    if(nVenues < 2) return eHouseMissing::venues;
+    if(!appealAllows(appeal, 4)) return eHouseMissing::appeal;
+    if(mOil <= 0) return eHouseMissing::oil;
+    if(!appealAllows(appeal, 5)) return eHouseMissing::appeal;
+    if(nVenues < 3) return eHouseMissing::venues;
+    if(!appealAllows(appeal, 6)) return eHouseMissing::appeal;
+    return eHouseMissing::nothing;
 }
 
 void eSmallHouse::read(eReadStream& src) {
@@ -408,12 +392,15 @@ void eSmallHouse::updateLevel() {
     if(mActors > 0) nVenues++;
     if(mAthletes > 0) nVenues++;
     if(mCompetitors > 0) nVenues++;
-    if(mFood > 0) {
-        if(mWater > 0 && nVenues > 0) {
-            if(mFleece > 0 && appeal > 2.0) {
-                if(nVenues > 1) {
-                    if(mOil > 0 && appeal > 5.0) {
-                        if(nVenues > 2 && appeal > 8.0) {
+    const auto a = [&](const int level) {
+        return appealAllows(appeal, level);
+    };
+    if(mFood > 0 && a(1)) {
+        if(mWater > 0 && nVenues > 0 && a(2)) {
+            if(mFleece > 0 && a(3)) {
+                if(nVenues > 1 && a(4)) {
+                    if(mOil > 0 && a(5)) {
+                        if(nVenues > 2 && a(6)) {
                             return setLevel(6);
                         }
                         return setLevel(5);

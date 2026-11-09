@@ -120,6 +120,9 @@ void eHeatMapTask::sRun(eThreadBoard& board,
         const auto a = heatGetter(ubt);
         map.addHeat(a, rect);
     }
+    for(const auto& ag : board.agoras()) {
+        map.addHeat(heatGetter(ag.type()), ag.tileRect());
+    }
 }
 
 void eHeatMapTask::run(eThreadBoard& board) {

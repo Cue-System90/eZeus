@@ -1,6 +1,7 @@
 #include "edifficulty.h"
 
 #include "characters/echaracterbase.h"
+#include <algorithm>
 #include <cmath>
 
 std::string eDifficultyHelpers::name(const eDifficulty diff) {
@@ -828,4 +829,46 @@ int eDifficultyHelpers::soliderBribe(const eDifficulty diff,
         return 0;
     }
     return mult*base;
+}
+
+namespace {
+    struct eAppealLimits {
+        int fKeep; // falls back below it
+        int fRise; // rises to the next level from it
+    };
+
+    // "ALL HOUSES" of Zeus_Model_VeryEasy/Easy/Normal/Hard/Impossible.txt,
+    // the common houses from hut to townhouse, the elite houses from the
+    // devolved one to the estate
+    const eAppealLimits sCommonAppeal[5][7] = {
+        {{-99, -10}, {-12, 0}, {-2, 10}, {-2, 10}, {5, 20}, {15, 30}, {25, 100}},
+        {{-99, -10}, {-12, 0}, {-2, 10}, {-2, 10}, {5, 20}, {15, 30}, {25, 100}},
+        {{-99, -10}, {-12, 0}, {-2, 10}, {-2, 10}, {5, 20}, {15, 30}, {25, 100}},
+        {{-99, -10}, {-12, 0}, {-2, 10}, {-2, 10}, {5, 20}, {15, 40}, {35, 100}},
+        {{-99, 0}, {-2, 10}, {-2, 10}, {5, 20}, {15, 30}, {25, 40}, {35, 100}}
+    };
+    const eAppealLimits sEliteAppeal[5][5] = {
+        {{-99, 40}, {36, 50}, {46, 60}, {56, 70}, {66, 100}},
+        {{-99, 46}, {42, 56}, {52, 66}, {62, 76}, {72, 100}},
+        {{-99, 50}, {46, 60}, {56, 70}, {66, 80}, {76, 100}},
+        {{-99, 50}, {46, 60}, {56, 70}, {66, 80}, {76, 100}},
+        {{-99, 55}, {50, 65}, {60, 75}, {70, 85}, {80, 100}}
+    };
+
+    const eAppealLimits& appealLimits(const eDifficulty diff,
+                                      const bool elite, const int level) {
+        const int d = std::clamp(static_cast<int>(diff), 0, 4);
+        if(elite) return sEliteAppeal[d][std::clamp(level, 0, 4)];
+        return sCommonAppeal[d][std::clamp(level, 0, 6)];
+    }
+}
+
+int eDifficultyHelpers::houseAppealToKeep(const eDifficulty diff,
+                                          const bool elite, const int level) {
+    return appealLimits(diff, elite, level).fKeep;
+}
+
+int eDifficultyHelpers::houseAppealToRise(const eDifficulty diff,
+                                          const bool elite, const int level) {
+    return appealLimits(diff, elite, level).fRise;
 }

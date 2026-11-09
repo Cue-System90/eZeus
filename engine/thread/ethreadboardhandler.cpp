@@ -2,6 +2,7 @@
 
 #include "engine/egameboard.h"
 #include "buildings/ehousebase.h"
+#include "buildings/eagorabase.h"
 
 eThreadBoardHandler::eThreadBoardHandler() {}
 
@@ -32,6 +33,7 @@ void eThreadBoardHandler::updateAll(eGameBoard& board, const eBoardCity& c) {
     }
     mTmpBoard.setState(board.state());
     updateFinishedMonuments(c);
+    updateAgoras(c);
 
     const int bState = board.state();
     const int cABState = c.allBuildingsState();
@@ -67,6 +69,15 @@ void eThreadBoardHandler::updateFinishedMonuments(const eBoardCity& c) {
         if(!f) continue;
         auto& b = fms.emplace_back();
         b.load(m);
+    }
+}
+
+void eThreadBoardHandler::updateAgoras(const eBoardCity& c) {
+    auto& as = mTmpBoard.agoras();
+    as.clear();
+    for(const auto a : c.agoras()) {
+        auto& b = as.emplace_back();
+        b.load(a);
     }
 }
 
@@ -110,6 +121,7 @@ void eThreadBoardHandler::update(eGameBoard& board, const eCityId cid,
         const auto& tiles = c->tiles();
         if(cSState != tSState) updateSanctuary(tiles);
         else update(tiles);
+        updateAgoras(*c);
         mTmpBoard.setState(bState);
         mTmpBoard.setTerrainState(cTState);
         mTmpBoard.setForestsState(bState);

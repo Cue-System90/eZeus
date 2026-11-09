@@ -21,6 +21,7 @@ void eThreadBoard::initialize(const int w, const int h) {
 void eThreadBoard::clear() {
     mTiles.clear();
     mFinishedMonuments.clear();
+    mAgoras.clear();
     mWidth = 0;
     mHeight = 0;
 }

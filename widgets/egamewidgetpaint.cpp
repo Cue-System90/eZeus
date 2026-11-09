@@ -1224,10 +1224,10 @@ void eGameWidget::paintEvent(ePainter& p) {
                     } else {
                         coll = &trrTexs.fAppeal;
                     }
+                    // appeal runs from -100 to 100 as in Zeus, the ten
+                    // shades from below -12 to above 87
                     const double app = am.heat(dtx, dty);
-                    const double mult = app > 0 ? 1 : -1;
-                    const double appS = mult*pow(abs(app), 0.75);
-                    int appId = (int)std::round(appS + 2.);
+                    int appId = (int)std::round(app/12.5 + 2.);
                     appId = std::clamp(appId, 0, 9);
                     const auto tex = coll->getTexture(appId);
                     tp.drawTexture(rx + da, ry + da, tex, eAlignment::top);

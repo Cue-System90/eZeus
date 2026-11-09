@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "engine/etile.h"
+#include "buildings/eroad.h"
 
 #include "eterraintextures.h"
 #include "egametextures.h"
@@ -395,7 +396,7 @@ std::shared_ptr<eTexture> eTileToTexture::get(eTile* const tile,
                     const int dx = tile->dx();
                     const int dy = tile->dy();
                     const double appeal = board.appeal(dx, dy);
-                    const bool highAppeal = appeal > 3;
+                    const bool highAppeal = appeal > eRoad::sPavedAppeal;
                     if(highAppeal) {
                         id = 93 + relId;
                     } else {

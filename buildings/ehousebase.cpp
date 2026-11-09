@@ -1,6 +1,7 @@
 #include "ehousebase.h"
 
 #include "engine/egameboard.h"
+#include "engine/edifficulty.h"
 
 #include "characters/esettler.h"
 #include "characters/actions/emovetoaction.h"
@@ -55,6 +56,17 @@ void eHouseBase::levelUp() {
 
 void eHouseBase::levelDown() {
     setLevel(mLevel - 1);
+}
+
+bool eHouseBase::appealAllows(const double appeal, const int level) const {
+    if(level <= 0) return true;
+    const auto& b = getBoard();
+    const auto diff = b.difficulty(playerId());
+    const bool elite = type() == eBuildingType::eliteHousing;
+    const int need = mLevel >= level ?
+        eDifficultyHelpers::houseAppealToKeep(diff, elite, level) :
+        eDifficultyHelpers::houseAppealToRise(diff, elite, level - 1);
+    return appeal >= need;
 }
 
 int eHouseBase::kill(int k) {

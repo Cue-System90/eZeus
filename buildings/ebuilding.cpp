@@ -2689,14 +2689,15 @@ void eBuilding::setHP(const int hp) {
 }
 
 double eBuilding::appeal() const {
+    // the best tile counts, as with the houses of Zeus
     const auto& b = getBoard();
     const auto& tiles = tilesUnder();
     if(tiles.empty()) return 0;
-    double sum = 0;
+    double best = -100;
     for(const auto t : tiles) {
         const int dx = t->dx();
         const int dy = t->dy();
-        sum += b.appeal(dx ,dy);
+        best = std::max(best, b.appeal(dx ,dy));
     }
-    return sum/tiles.size();
+    return best;
 }

@@ -47,6 +47,10 @@ public:
     void levelUp();
     void levelDown();
 
+    // Whether the appeal is enough for the level, as Zeus decides it: a
+    // house keeps a level on less than it needs to rise to it.
+    bool appealAllows(const double appeal, const int level) const;
+
     int level() const { return mLevel; }
     int people() const { return mPeople; }
 

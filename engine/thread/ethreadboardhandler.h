@@ -26,6 +26,7 @@ private:
     void updateSanctuary(const std::vector<eTile*>& tiles);
     void updateAll(eGameBoard& board, const eBoardCity &c);
     void updateFinishedMonuments(const eBoardCity& c);
+    void updateAgoras(const eBoardCity& c);
 
     bool mInitialized = false;
     eThreadBoard mBoard;

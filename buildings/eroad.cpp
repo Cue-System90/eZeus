@@ -321,7 +321,7 @@ std::shared_ptr<eTexture> eRoad::getTexture(const eTileSize size) const {
         const double a = b.appeal(dx, dy);
 
         const eTextureCollection* coll;
-        if(a > 3) {
+        if(a > sPavedAppeal) {
             coll = &pcoll;
         } else {
             coll = &rcoll;

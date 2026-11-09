@@ -11,6 +11,10 @@ class eRoad : public eBuilding {
 public:
     eRoad(eGameBoard& board, const eCityId cid);
 
+    // Above this appeal a road is drawn paved. The original's value is not
+    // known, this one paves the better quarters of its cities.
+    static const int sPavedAppeal = 20;
+
     void erase() override;
 
     std::shared_ptr<eTexture>
