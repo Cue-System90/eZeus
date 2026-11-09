@@ -33,6 +33,15 @@ eVendor::eVendor(eGameBoard& board,
     mOverlayY2(overlayY2),
     mOverlayTex2(overlayTex2) {
     eGameTextures::loadAgora();
+    switch(mResType) {
+    case eResourceType::fleece:
+    case eResourceType::oliveOil:
+    case eResourceType::wine:
+        mMaxResource = eNumbers::sBasicVendorMaxResource*mResMult;
+        break;
+    default:
+        break;
+    }
 }
 
 eVendor::~eVendor() {

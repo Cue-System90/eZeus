@@ -1,5 +1,8 @@
 #include "echaracter.h"
 
+#include <set>
+#include "enumbers.h"
+
 #include "engine/egameboard.h"
 
 #include "actions/edieaction.h"
@@ -200,11 +203,16 @@ void eCharacter::changeTile(eTile* const t, const bool prepend) {
     if(t) t->addCharacter(tsptr, prepend);
     else deleteLater();
     if(t && mProvide != eProvide::none && mProvideCount > 0) {
-        for(const int x : {-1, 0, 1}) {
-            for(const int y : {-1, 0, 1}) {
+        // a building one tile away from the road is served too, like
+        // in the original; the same building is served once a step
+        const int d = eNumbers::sWalkerProvideDistance;
+        std::set<eBuilding*> served;
+        for(int x = -d; x <= d; x++) {
+            for(int y = -d; y <= d; y++) {
                 const auto tt = t->tileRel<eTile>(x, y);
                 if(!tt) continue;
                 if(const auto b = tt->underBuilding()) {
+                    if(!served.insert(b).second) continue;
                     provideToBuilding(b);
                     if(mProvideCount <= 0) return;
                 }

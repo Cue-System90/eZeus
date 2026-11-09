@@ -244,6 +244,8 @@ int eNumbers::sAttackCityMaxKilled;
 int eNumbers::sAttackCityAresMaxKilled;
 
 int eNumbers::sBasicVendorMaxResourceTakeDistance;
+int eNumbers::sBasicVendorMaxResource;
+int eNumbers::sWalkerProvideDistance;
 int eNumbers::sHorseVendorMaxResourceTakeDistance;
 int eNumbers::sResourceBuildingMaxResourceGiveDistance;
 int eNumbers::sProcessingBuildingMaxResourceTakeDistance;
@@ -562,6 +564,13 @@ void eNumbers::sLoad(const std::string& path) {
     loadI("attack_city_ares_max_killed_i", sAttackCityAresMaxKilled, 8, 1, 100);
 
     loadI("basic_vendor_max_resource_take_distance_i", sBasicVendorMaxResourceTakeDistance, 60, 5, 1000);
+    // loads a stall for fleece, oil or wine keeps at most. The original
+    // holds about two and a half, so a few agoras near the warehouses
+    // cannot take what all the others need
+    loadI("basic_vendor_max_resource_i", sBasicVendorMaxResource, 3, 1, 100);
+    // how many tiles from its road a walker reaches the buildings it
+    // serves. The original serves houses one tile away from the road
+    loadI("walker_provide_distance_i", sWalkerProvideDistance, 2, 1, 3);
     loadI("horse_vendor_max_resource_take_distance_i", sHorseVendorMaxResourceTakeDistance, 200, 5, 1000);
 
     loadI("resource_building_max_resource_give_distance_i", sResourceBuildingMaxResourceGiveDistance, 60, 5, 1000);
