@@ -2,9 +2,11 @@
 #define ZEUSSAVEFILE_H
 
 #include "gamefile.h"
+#include "engine/eresourcetype.h"
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 // One entry of the building table of a saved game. A building made of
@@ -21,6 +23,8 @@ struct eZeusSaveBuilding {
     int fPrev = 0;
     int fNext = 0;
     int fPeople = 0;
+    // what a warehouse space or a granary holds, in eZeus units
+    std::vector<std::pair<eResourceType, int>> fGoods;
 };
 
 // Reads a saved game (.sav) of Zeus and Poseidon. The order of the blocks

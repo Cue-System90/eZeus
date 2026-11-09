@@ -1,6 +1,7 @@
 #include "zeussavefile.h"
 
 #include "pkwareinputstream.h"
+#include "epakhelpers.h"
 
 ZeusSaveFile::ZeusSaveFile(const std::string& filename) :
     GameFile(filename) {
@@ -105,6 +106,25 @@ void ZeusSaveFile::readBuildings() {
         b.fPrev = readShort(56);
         b.fNext = readShort(58);
         b.fRotation = e[172];
+        // the original counts goods in hundreds, a full warehouse space
+        // holds 400, in eZeus 4
+        if(type == 59) { // a warehouse space
+            const auto res = ePakHelpers::pakResourceByteToType(
+                                 readShort(18), mPoseidon);
+            const int n = readShort(60)/100;
+            if(n > 0) b.fGoods.push_back({res, n});
+        } else if(type == 57) { // granary
+            // one amount per kind of food, followed by the free space.
+            // The first is wheat, the fifth cheese, the others are not
+            // identified yet and come in as wheat.
+            for(int i = 0; i < 7; i++) {
+                const int n = readShort(86 + 2*i)/100;
+                if(n <= 0) continue;
+                const auto res = i == 4 ? eResourceType::cheese :
+                                          eResourceType::wheat;
+                b.fGoods.push_back({res, n});
+            }
+        }
     }
     pk.empty();
     if(pk.hasError()) ok = false;

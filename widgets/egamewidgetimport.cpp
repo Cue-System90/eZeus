@@ -258,6 +258,8 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
             house->provide(eProvide::horses, 100);
         }
         house->moveIn(b.fPeople - house->people());
+        // a house stores food for its people, who were one so far
+        house->provide(eProvide::food, 1000);
         return true;
     };
 
@@ -407,6 +409,16 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
                 } else {
                     ok = placedAt(r.x, r.y, btype) ||
                          placedAt(r.x + r.w - 1, r.y + r.h - 1, btype);
+                }
+                if(ok && (type == 57 || type == 58)) {
+                    const auto t = board.tile(r.x + r.w - 1, r.y + r.h - 1);
+                    const auto s = static_cast<eStorageBuilding*>(
+                                       t->underBuilding());
+                    for(const auto p : parts) {
+                        for(const auto& g : p->fGoods) {
+                            s->addNotAccept(g.first, g.second);
+                        }
+                    }
                 }
             }
         }
