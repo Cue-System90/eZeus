@@ -76,6 +76,21 @@ Two values are not in the model and are estimates: god monuments spread
 like commemorative monuments, and roads are drawn paved above 20. Onion and
 carrot farms had swapped values before.
 
+### Walkers reach one tile further
+
+Upstream served only the buildings right next to the walker. In the
+original a house one tile away from the road is served too, and a quarter
+of the townhouses of a saved game stood that way, behind a row of columns
+or a garden. Walkers now serve the buildings up to two tiles from their
+road (`walker_provide_distance_i` in `numbers.txt`).
+
+### Agora stalls keep less
+
+Upstream let a stall for fleece, oil or wine keep ten loads. The stalls of
+the original hold about two and a half, and with ten the agoras next to
+the warehouses took a whole year's supply before the others got any. A
+stall now keeps three loads (`basic_vendor_max_resource_i`).
+
 ### Importing saved games of the original
 
 ```
@@ -83,9 +98,12 @@ eZeus --import-sav <original .sav> [<converted .ez>]
 ```
 
 starts the city of a saved game of Zeus or Poseidon on the map of its
-adventure, or saves it as an eZeus game. Colonies are not supported yet,
-nor are walkers. An imported city plays on without the goals of its
-episode.
+adventure, or saves it as an eZeus game. The buildings come with their
+stocks, the storages and trade posts with their orders, and the sheep and
+goats with their sheds. Colonies are not supported yet, nor are the
+people walking about. An imported city plays on without the goals of its
+episode. eZeus' sanctuaries are larger than the original ones; they go
+where they cover the fewest roads and buildings nearby.
 
 ### Running a city unattended
 
