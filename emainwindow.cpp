@@ -16,6 +16,8 @@
 #include "pak/zeussavefile.h"
 #include "buildings/esmallhouse.h"
 #include "buildings/eelitehousing.h"
+#include "buildings/eagorabase.h"
+#include "buildings/evendor.h"
 #include "characters/echaracter.h"
 
 #include "engine/ethreadpool.h"
@@ -370,6 +372,57 @@ void eMainWindow::printCitySummary() const {
            chars[eCharacterType::eliteCitizen],
            chars[eCharacterType::watchman],
            chars[eCharacterType::disgruntled]);
+    // what the city has in stock of the goods its houses use up, and what
+    // its trade partners still sell or buy this year
+    const auto pid = b.personPlayer();
+    const auto stock = [&](const eResourceType t) {
+        return std::to_string(b.resourceCount(cid, t));
+    };
+    printf("  stock fleece %s oil %s wine %s food %s\n",
+           stock(eResourceType::fleece).c_str(),
+           stock(eResourceType::oliveOil).c_str(),
+           stock(eResourceType::wine).c_str(),
+           stock(eResourceType::food).c_str());
+    // what the stalls of each agora hold, in hundredths of a load
+    std::string stalls;
+    for(const auto a : b.agoras(cid)) {
+        std::string s;
+        for(int i = 0; i < a->nPts(); i++) {
+            const auto v = dynamic_cast<eVendor*>(a->building(i));
+            if(!v) continue;
+            const auto vt = v->type();
+            const char kind = vt == eBuildingType::foodVendor ? 'f' :
+                              vt == eBuildingType::fleeceVendor ? 'w' :
+                              vt == eBuildingType::oilVendor ? 'o' :
+                              vt == eBuildingType::wineVendor ? 'v' :
+                              vt == eBuildingType::armsVendor ? 'a' : 'h';
+            s += (s.empty() ? "" : "/") + std::string(1, kind) +
+                 std::to_string(v->peddlerResource()) +
+                 (v->enabled() ? "" : "x");
+        }
+        const auto t = a->centerTile();
+        if(!s.empty()) {
+            stalls += " " + std::to_string(t->x()) + "," +
+                      std::to_string(t->y()) + (a->enabled() ? "" : "x") +
+                      "[" + s + "]";
+        }
+    }
+    printf("  stalls%s\n", stalls.c_str());
+    for(const auto& c : b.world().cities()) {
+        if(c->cityId() == cid || !c->trades()) continue;
+        const auto trades = [&](const std::vector<eResourceTrade>& ts) {
+            std::string s;
+            for(const auto& t : ts) {
+                s += " " + eResourceTypeHelpers::typeName(t.fType) + " " +
+                     std::to_string(t.used(pid)) + "/" +
+                     std::to_string(t.fMax);
+            }
+            return s;
+        };
+        printf("  trade %s%s | sells%s | buys%s\n", c->name().c_str(),
+               c->waterTrade(cid) ? " (sea)" : "",
+               trades(c->sells()).c_str(), trades(c->buys()).c_str());
+    }
     fflush(stdout);
 }
 

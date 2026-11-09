@@ -40,6 +40,7 @@ public:
                  const int id) const;
 
     eBuilding* building(const int id) const;
+    int nPts() const { return mNPts; }
     void setBuilding(const int id, const stdsptr<eBuilding>& b);
     void setBuilding(eBuilding* const space, const stdsptr<eBuilding>& b);
     int buildingId(const eBuilding* const b) const;
