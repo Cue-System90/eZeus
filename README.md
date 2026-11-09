@@ -49,6 +49,53 @@ Only windows binaries are provided. If you want to play on Linux you have to bui
 
 [You can download eZeus from GitHub](https://github.com/MaurycyLiebner/eZeus/releases)
 
+## Changes in this fork
+
+### Desirability follows the original model
+
+This changes the balance compared to upstream eZeus. Upstream gave every
+building a value and a range, let the value fall off linearly to the range
+and halved it, while the houses needed little to evolve. A city taken over
+from a saved game of the original sat several levels lower in eZeus: in one
+of them 52 of 96 townhouses fell to level 2, although the original grid of
+that save puts all but 3 of them above the 25 a townhouse needs.
+
+eZeus now spreads desirability the way the original does, as read off the
+desirability grid of its saved games:
+
+- every building uses value, range, rings per step and change per step from
+  `Model\Zeus_Model_*.txt` of the original game,
+- the value spreads in square rings, starting next to the building, up to 6
+  rings, and every tile stays between -100 and 100,
+- a house reads its best tile,
+- a house keeps a level above the "devolve" value and rises above the
+  "evolve" value of the model, which differ per difficulty,
+- the agora counts with its own value, its stalls have none.
+
+Two values are not in the model and are estimates: god monuments spread
+like commemorative monuments, and roads are drawn paved above 20. Onion and
+carrot farms had swapped values before.
+
+### Importing saved games of the original
+
+```
+eZeus --import-sav <original .sav> [<converted .ez>]
+```
+
+starts the city of a saved game of Zeus or Poseidon on the map of its
+adventure, or saves it as an eZeus game. Colonies are not supported yet,
+nor are walkers. An imported city plays on without the goals of its
+episode.
+
+### Running a city unattended
+
+```
+eZeus --load <saved game .ez> --autoplay <months>
+```
+
+runs a city at the highest speed, reports it once a month and ends. It
+also works after `--import-sav`.
+
 ## How To Build on macOS
 
 You need these dependencies for x86 and ARM Builds: 
