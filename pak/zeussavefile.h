@@ -25,6 +25,26 @@ struct eZeusSaveBuilding {
     int fPeople = 0;
     // what a warehouse space or a granary holds, in eZeus units
     std::vector<std::pair<eResourceType, int>> fGoods;
+
+    // What a storage is set to do with each good, kept with the part the
+    // settings belong to: the warehouse or granary, the trade post, the
+    // part of a pier on land.
+    bool fHasOrders = false;
+    eResourceType fAccept = eResourceType::none;
+    eResourceType fGet = eResourceType::none;
+    eResourceType fEmpty = eResourceType::none;
+    eResourceType fImports = eResourceType::none;
+    eResourceType fExports = eResourceType::none;
+    // how much of a good to keep at most, in eZeus units
+    std::vector<std::pair<eResourceType, int>> fMaxCount;
+};
+
+// A domesticated animal of a saved game. The original keeps them with the
+// walkers, named in Zeus_Text group 64.
+struct eZeusSaveAnimal {
+    int fType = 0; // 49 sheep, 50 goats
+    int fX = 0; // like the buildings
+    int fY = 0;
 };
 
 // Reads a saved game (.sav) of Zeus and Poseidon. The order of the blocks
@@ -49,9 +69,13 @@ public:
 
     const std::vector<eZeusSaveBuilding>& buildings() const
     { return mBuildings; }
+    const std::vector<eZeusSaveAnimal>& animals() const
+    { return mAnimals; }
 private:
     void readAdventure();
+    void readWalkers();
     void readBuildings();
+    void readStorages();
 
     std::string mAdventure;
     int mMapsize = 0;
@@ -63,6 +87,7 @@ private:
     std::unique_ptr<Grid<uint8_t>> mElevation;
 
     std::vector<eZeusSaveBuilding> mBuildings;
+    std::vector<eZeusSaveAnimal> mAnimals;
 };
 
 #endif // ZEUSSAVEFILE_H

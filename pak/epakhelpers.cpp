@@ -48,6 +48,8 @@ eResourceType ePakHelpers::pakResourceByteToType(
         return eResourceType::drachmas;
     } else if(!poseidon && byte == 21) {
         return eResourceType::food;
+    } else if(poseidon && byte == 15) {
+        return eResourceType::horse;
     } else if(poseidon && byte == 16) {
         return eResourceType::blackMarble;
     } else if(poseidon && byte == 17) {

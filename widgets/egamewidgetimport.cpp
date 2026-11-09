@@ -4,6 +4,9 @@
 #include "buildings/allbuildings.h"
 #include "pak/zeusfile.h"
 #include "pak/zeussavefile.h"
+#include "characters/esheep.h"
+#include "characters/egoat.h"
+#include "buildings/sanctuaries/esanctuaryblueprint.h"
 
 #include <algorithm>
 #include <climits>
@@ -363,6 +366,49 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
         }
     };
 
+    // The settings of the original storage, kept to what eZeus' building
+    // holds and, for a trade post, to what its partner trades. They come
+    // after the goods, which eZeus would otherwise turn away.
+    const auto setOrders = [&](eBuilding* const to,
+                               const std::vector<const eZeusSaveBuilding*>& parts) {
+        const auto s = dynamic_cast<eStorageBuilding*>(to);
+        if(!s) return;
+        const eZeusSaveBuilding* o = nullptr;
+        for(const auto p : parts) {
+            if(p->fHasOrders) {
+                o = p;
+                break;
+            }
+        }
+        if(!o) return;
+        const auto can = s->canAccept();
+        // the original keeps up to 32 of a good like eZeus, a lower limit
+        // of the player is taken along, a higher one is not
+        std::map<eResourceType, int> max;
+        const auto& def = s->maxCount();
+        for(const auto& m : o->fMaxCount) {
+            if(!static_cast<bool>(can & m.first)) continue;
+            const auto it = def.find(m.first);
+            if(it == def.end()) continue;
+            max[m.first] = std::min(it->second, m.second);
+        }
+        if(const auto tp = dynamic_cast<eTradePost*>(s)) {
+            const auto& c = tp->city();
+            auto imports = eResourceType::none;
+            auto exports = eResourceType::none;
+            for(const auto t : eResourceTypeHelpers::extractResourceTypes(o->fImports)) {
+                if(c.sells(t)) imports = imports | t;
+            }
+            for(const auto t : eResourceTypeHelpers::extractResourceTypes(o->fExports)) {
+                if(c.buys(t)) exports = exports | t;
+            }
+            tp->setOrders(imports, exports);
+        } else {
+            s->setOrders(o->fGet & can, o->fEmpty & can, o->fAccept & can);
+        }
+        s->setMaxCount(max);
+    };
+
     // a part comes with the first part of its building
     std::vector<const eZeusSaveBuilding*> heads;
     for(const auto& b : save.buildings()) {
@@ -375,6 +421,18 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
                           [](const eZeusSaveBuilding* const b) {
         return b->fType >= 84 && b->fType <= 97;
     });
+
+    // the tiles under the buildings of the original, other than sanctuaries
+    std::set<eTile*> occupied;
+    for(const auto& b : save.buildings()) {
+        if(b.fType >= 84 && b.fType <= 97) continue;
+        for(int i = 0; i < b.fSize; i++) {
+            for(int j = 0; j < b.fSize; j++) {
+                const auto t = tiles[b.fY + j][b.fX + i].fTile;
+                if(t) occupied.insert(t);
+            }
+        }
+    }
 
     std::vector<const eZeusSaveBuilding*> houses;
     for(const auto bp : heads) {
@@ -410,7 +468,10 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
                 if(ok) {
                     auto bb = board.tile(r.x, r.y)->underBuilding();
                     if(pier) bb = static_cast<ePier*>(bb)->tradePost();
-                    if(bb) addGoods(bb, parts);
+                    if(bb) {
+                        addGoods(bb, parts);
+                        setOrders(bb, parts);
+                    }
                 }
             }
         } else if(type == 119) {
@@ -471,21 +532,57 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
                 const bool wide = r.w >= r.h;
                 const int cx = r.x + r.w/2;
                 const int cy = r.y + r.h/2;
+                // Of the places eZeus' larger sanctuary fits at, the one
+                // that covers the fewest roads and buildings of the
+                // original is taken, nearest first. A covered road cuts
+                // the houses behind it off from the peddlers.
+                const auto bt = eBuildingModeHelpers::toBuildingType(mode);
+                struct eCandidate {
+                    int fScore;
+                    int fDx;
+                    int fDy;
+                    bool fRot;
+                };
+                std::vector<eCandidate> cands;
                 const int maxD = 6;
-                for(int d = 0; d <= maxD && !built(); d++) {
-                    for(int dx = -d; dx <= d && !built(); dx++) {
-                        for(int dy = -d; dy <= d && !built(); dy++) {
-                            if(std::max(std::abs(dx), std::abs(dy)) != d) continue;
-                            for(const bool rot : {!wide, wide}) {
-                                mRotate = rot;
-                                buildWithMode(mode, cx + dx, cy + dy);
-                                if(built()) {
-                                    if(d) printf("sanctuary %d moved by %d,%d\n",
-                                                 type, dx, dy);
-                                    break;
+                for(int dx = -maxD; dx <= maxD; dx++) {
+                    for(int dy = -maxD; dy <= maxD; dy++) {
+                        for(const bool rot : {!wide, wide}) {
+                            const auto h = eSanctBlueprints::sSanctuaryBlueprint(bt, rot);
+                            const int minX = cx + dx - h->fW/2;
+                            const int minY = cy + dy - h->fH/2;
+                            const int maxX = minX + h->fW;
+                            const int maxY = minY + h->fH;
+                            if(!board.canBuildBase(minX, maxX, minY, maxY,
+                                                   true, cid, pid)) continue;
+                            int score = 0;
+                            for(int x = minX; x < maxX; x++) {
+                                for(int y = minY; y < maxY; y++) {
+                                    const auto t = board.tile(x, y);
+                                    if(!t || ground.count(t)) continue;
+                                    if(t->hasRoad()) score += 10;
+                                    else if(occupied.count(t)) score += 1;
                                 }
                             }
+                            const int d = std::max(std::abs(dx), std::abs(dy));
+                            cands.push_back({100*score + d, dx, dy, rot});
                         }
+                    }
+                }
+                std::sort(cands.begin(), cands.end(),
+                          [](const eCandidate& a, const eCandidate& b) {
+                    return a.fScore < b.fScore;
+                });
+                for(const auto& c : cands) {
+                    mRotate = c.fRot;
+                    buildWithMode(mode, cx + c.fDx, cy + c.fDy);
+                    if(built()) {
+                        if(c.fDx || c.fDy || c.fScore >= 100) {
+                            printf("sanctuary %d moved by %d,%d, covering "
+                                   "%d roads and buildings\n", type,
+                                   c.fDx, c.fDy, c.fScore/100);
+                        }
+                        break;
                     }
                 }
                 ok = built();
@@ -535,11 +632,31 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
                 if(ok && (type == 57 || type == 58)) {
                     const auto t = board.tile(r.x + r.w - 1, r.y + r.h - 1);
                     addGoods(t->underBuilding(), parts);
+                    setOrders(t->underBuilding(), parts);
                 }
             }
         }
         if(ok) placed++;
         else failed[type]++;
+    }
+
+    // the sheep and goats go where they stood, as many as the carding
+    // sheds and dairies placed allow
+    int animals = 0;
+    int animalsFailed = 0;
+    for(const auto& a : save.animals()) {
+        const bool sheep = a.fType == 49;
+        const auto type = sheep ? eBuildingType::sheep : eBuildingType::goat;
+        const auto t = tiles[a.fY][a.fX].fTile;
+        bool ok = t && board.countAllowed(cid, type) > 0;
+        if(ok) {
+            ok = board.buildAnimal(t, type, [sheep](eGameBoard& b) {
+                if(sheep) return stdsptr<eCharacter>(e::make_shared<eSheep>(b));
+                return stdsptr<eCharacter>(e::make_shared<eGoat>(b));
+            }, cid, pid, true);
+        }
+        if(ok) animals++;
+        else animalsFailed++;
     }
 
     // the level of a house depends on the appeal around it, which comes
@@ -599,6 +716,10 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
     };
     list("failed", failed);
     list("not supported", skipped);
+    if(animals || animalsFailed) {
+        report += ", animals " + std::to_string(animals) +
+                  " of " + std::to_string(animals + animalsFailed);
+    }
     report += ", house levels:";
     for(const auto& l : levels) {
         report += " " + l.first + "x" + std::to_string(l.second);
