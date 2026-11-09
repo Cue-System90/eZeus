@@ -14,6 +14,9 @@
 #include "audio/emusic.h"
 
 #include "pak/zeussavefile.h"
+#include "buildings/esmallhouse.h"
+#include "buildings/eelitehousing.h"
+#include "characters/echaracter.h"
 
 #include "engine/ethreadpool.h"
 
@@ -260,6 +263,82 @@ void eMainWindow::setStartupImport(const std::string& sav,
                                    const std::string& out) {
     mImportSav = sav;
     mImportOut = out;
+}
+
+void eMainWindow::autoplay() {
+    if(!mGW || !mBoard || mWidget != mGW) return;
+    // the viewed city is known after the first frame
+    if(mGW->viewedCity() == eCityId::neutralFriendly) return;
+    // messages stop the time, a decision there is left to a player
+    const auto open = mGW->closeMessage();
+    if(!open.empty() && open != mAutoplayWaiting) {
+        printf("waiting for a decision: %s\n", open.c_str());
+        fflush(stdout);
+    }
+    mAutoplayWaiting = open;
+    const auto& d = mBoard->date();
+    const int month = 12*d.year() + static_cast<int>(d.month());
+    if(mAutoplayMonth == -1) {
+        mGW->runAtMaxSpeed();
+        mAutoplayMonth = month;
+        printCitySummary();
+        return;
+    }
+    if(month == mAutoplayMonth) return;
+    mAutoplayMonth = month;
+    printCitySummary();
+    if(--mAutoplayMonths == 0) mQuit = true;
+}
+
+void eMainWindow::printCitySummary() const {
+    const auto& b = *mBoard;
+    const auto cid = mGW->viewedCity();
+    std::map<int, int> common;
+    std::map<int, int> elite;
+    int people = 0;
+    int hoplites = 0;
+    int horsemen = 0;
+    const auto houses = b.buildings(cid, [](eBuilding* const bb) {
+        const auto t = bb->type();
+        return t == eBuildingType::commonHouse ||
+               t == eBuildingType::eliteHousing;
+    });
+    for(const auto bb : houses) {
+        const auto h = static_cast<eHouseBase*>(bb);
+        people += h->people();
+        if(h->type() == eBuildingType::commonHouse) {
+            common[h->level()]++;
+        } else {
+            elite[h->level()]++;
+            int ho;
+            int hm;
+            static_cast<eEliteHousing*>(h)->soldiers(ho, hm);
+            hoplites += ho;
+            horsemen += hm;
+        }
+    }
+    std::map<eCharacterType, int> chars;
+    for(const auto c : b.characters()) {
+        chars[c->type()]++;
+    }
+    const auto levels = [](const std::map<int, int>& m) {
+        std::string s;
+        for(const auto& l : m) {
+            s += " " + std::to_string(l.first) + ":" + std::to_string(l.second);
+        }
+        return s;
+    };
+    const auto& d = b.date();
+    printf("%d/%02d people %d drachmas %d | common%s | elite%s | "
+           "soldiers %d hoplites %d horsemen | nobles %d watchmen %d "
+           "disgruntled %d\n",
+           d.year(), static_cast<int>(d.month()) + 1, people,
+           b.drachmas(b.personPlayer()), levels(common).c_str(),
+           levels(elite).c_str(), hoplites, horsemen,
+           chars[eCharacterType::eliteCitizen],
+           chars[eCharacterType::watchman],
+           chars[eCharacterType::disgruntled]);
+    fflush(stdout);
 }
 
 void eMainWindow::clearWidgets() {
@@ -684,6 +763,7 @@ int eMainWindow::exec() {
     bool resetRenderTargets = false;
     while(!mQuit) {
         const auto fpsStart = high_resolution_clock::now();
+        if(mAutoplayMonths) autoplay();
 
         while(SDL_PollEvent(&e)) {
             int x, y;
@@ -694,7 +774,8 @@ int eMainWindow::exec() {
                 mQuit = true;
             } else if(e.type == SDL_WINDOWEVENT) {
                 const auto we = e.window.event;
-                if(we == SDL_WINDOWEVENT_MINIMIZED) {
+                // a run without a player goes on while minimized
+                if(we == SDL_WINDOWEVENT_MINIMIZED && !mAutoplayMonths) {
                     resetRenderTargets = true;
                     while(SDL_WaitEvent(&e)) {
                         if(e.window.event == SDL_WINDOWEVENT_RESTORED) {

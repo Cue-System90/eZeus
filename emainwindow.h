@@ -93,9 +93,14 @@ public:
                           const std::string& out);
     // loads a saved game right after the start
     void setStartupLoad(const std::string& path) { mLoad = path; }
+    // lets the game run on its own for months after loading or importing,
+    // reports the city every month and ends the program
+    void setStartupAutoplay(const int months) { mAutoplayMonths = months; }
 private:
     void clearWidgets();
     void fitResolutionToWindow();
+    void autoplay();
+    void printCitySummary() const;
 
     eSettings mSettings;
 
@@ -104,6 +109,9 @@ private:
     std::string mImportSav;
     std::string mImportOut;
     std::string mLoad;
+    int mAutoplayMonths = 0;
+    int mAutoplayMonth = -1;
+    std::string mAutoplayWaiting;
 
     bool mQuit = false;
     bool mFirstFullscrenSetting = true;

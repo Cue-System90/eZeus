@@ -104,16 +104,22 @@ bool getDisplayResolutions(std::vector<SDL_DisplayMode>& resolutions) {
 int main(int argc, char** argv) {
     // eZeus --import-sav <original .sav> [<converted .ez>]
     // eZeus --load <saved game .ez>
+    // either of the two followed by --autoplay <months>
     std::string importSav;
     std::string importOut;
     std::string load;
+    int autoplay = 0;
     for(int i = 1; i < argc; i++) {
         const std::string arg = argv[i];
         if(arg == "--import-sav" && i + 1 < argc) {
             importSav = argv[++i];
-            if(i + 1 < argc) importOut = argv[++i];
+            if(i + 1 < argc && std::string(argv[i + 1]).rfind("--", 0) != 0) {
+                importOut = argv[++i];
+            }
         } else if(arg == "--load" && i + 1 < argc) {
             load = argv[++i];
+        } else if(arg == "--autoplay" && i + 1 < argc) {
+            autoplay = std::atoi(argv[++i]);
         }
     }
 
@@ -200,6 +206,7 @@ int main(int argc, char** argv) {
         if(!i) return 1;
         if(!importSav.empty()) w.setStartupImport(importSav, importOut);
         if(!load.empty()) w.setStartupLoad(load);
+        if(autoplay > 0) w.setStartupAutoplay(autoplay);
         const bool e = eGameTextures::initialize(w.renderer());
 
         if(e) r = w.exec();

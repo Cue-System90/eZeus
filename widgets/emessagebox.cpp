@@ -65,6 +65,7 @@ void eMessageBox::initialize(eGameBoard& board,
         eStringHelpers::replaceAll(msg.fTitle, "[monster]",
                                    eMonster::sMonsterName(ed.fMonster));
 
+        mTitle = msg.fTitle;
         const auto title = new eLabel(msg.fTitle, window());
         title->setHugeFontSize();
         title->fitFontToWidth(width() - 2*p - 2*title->padding());

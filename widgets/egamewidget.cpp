@@ -1751,6 +1751,19 @@ bool eGameWidget::inPatrolBuildingHover(eBuilding* const b) {
     return false;
 }
 
+void eGameWidget::runAtMaxSpeed() {
+    if(mPaused) switchPause();
+    mSpeedId = sMaxSpeedId;
+    mSpeed = sSpeeds[mSpeedId];
+}
+
+std::string eGameWidget::closeMessage() {
+    if(!mMsgBox) return "";
+    if(!mMsgBox->closable()) return mMsgBox->title();
+    mMsgBox->close();
+    return "";
+}
+
 void eGameWidget::switchPause() {
     mPaused = !mPaused;
     if(mPaused && !mPausedLabel) {

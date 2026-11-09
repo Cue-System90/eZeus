@@ -145,6 +145,11 @@ public:
     // which has to come from the same adventure. Returns a report of what
     // could not be taken over.
     std::string importOriginalSave(const ZeusSaveFile& save);
+    // unpauses at the highest speed, for runs without a player
+    void runAtMaxSpeed();
+    // Closes the message box on screen, which stops the time, unless it
+    // asks for a decision. Returns the title of the box left open.
+    std::string closeMessage();
 
     void centerDialog(eWidget* const d);
     void openDialog(eWidget* const d) override;

@@ -25,6 +25,7 @@ public:
 
     void close();
     bool closable() const { return mClosable; }
+    const std::string& title() const { return mTitle; }
 
     eWidget* createTributeWidget(const eResourceType type,
                                  const int count, const int space,
@@ -36,6 +37,7 @@ protected:
     bool mousePressEvent(const eMouseEvent& e);
 private:
     bool mClosable = false;
+    std::string mTitle;
     eAction mCloseFunc;
 //    eAction mDone;
 };
