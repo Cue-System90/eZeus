@@ -104,6 +104,8 @@ struct eNumbers {
 
     static int sPatrolerMaxDistance;
     static int sPatrolerWaitTime;
+    static int sPeddlerMaxDistance;
+    static int sPeddlerWaitTime;
     static int sPatrolerSourceSpawnPeriod;
 
     static int sArtisanWaitTime;

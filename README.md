@@ -85,6 +85,17 @@ others got any. A stall now keeps four loads
 (`basic_vendor_max_resource_i`). Food stays at ten; the original keeps up
 to eleven.
 
+### Peddlers leave sooner
+
+Upstream lets every walker building wait 5000 ticks before it sends the
+next walker, and a walker roams 40 tiles. In the saved games of the
+original four of five agoras have their peddler out, and a peddler turns
+back after 43 tiles; two saves 19 days apart put the pause between two
+trips at the time it takes to walk 12 to 17 tiles. An agora now waits
+3000 ticks (`peddler_wait_time_i`) and its peddler roams 43 tiles
+(`peddler_max_distance_i`). Houses run out of fleece about half as often.
+The other walkers are unchanged.
+
 ### Importing saved games of the original
 
 ```
@@ -94,8 +105,9 @@ eZeus --import-sav <original .sav> [<converted .ez>]
 starts the city of a saved game of Zeus or Poseidon on the map of its
 adventure, or saves it as an eZeus game. The buildings come with their
 stocks, the agoras with what their stalls hold, the storages and trade
-posts with their orders, and the sheep and
-goats with their sheds. Avenues are taken over tile by tile; a boulevard
+posts with their orders, the houses with their fleece, oil and wine, and
+the sheep and goats with their sheds. Wild animals standing where a
+building goes are removed. Avenues are taken over tile by tile; a boulevard
 becomes a road with an avenue on both sides, as eZeus has no boulevards.
 Without them the houses, podiums and theatres behind an avenue had no road
 and nobody came by. Colonies are not supported yet, nor are the

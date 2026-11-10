@@ -105,6 +105,8 @@ int eNumbers::sHorseRanchHorseSpawnPeriod;
 
 int eNumbers::sPatrolerMaxDistance;
 int eNumbers::sPatrolerWaitTime;
+int eNumbers::sPeddlerMaxDistance;
+int eNumbers::sPeddlerWaitTime;
 int eNumbers::sPatrolerSourceSpawnPeriod;
 
 int eNumbers::sArtisanWaitTime;
@@ -426,6 +428,8 @@ void eNumbers::sLoad(const std::string& path) {
 
     loadI("patroler_max_distance_i", sPatrolerMaxDistance, 40, 5, 1000);
     loadI("patroler_wait_time_i", sPatrolerWaitTime, 5000, 1, 1000000);
+    loadI("peddler_max_distance_i", sPeddlerMaxDistance, 43, 5, 1000);
+    loadI("peddler_wait_time_i", sPeddlerWaitTime, 3000, 1, 1000000);
     loadI("patroler_source_spawn_period_i", sPatrolerSourceSpawnPeriod, 10000, 1, 1000000);
 
     loadI("artisan_wait_time_i", sArtisanWaitTime, 2000, 1, 1000000);

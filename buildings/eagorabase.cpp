@@ -27,6 +27,10 @@ eAgoraBase::eAgoraBase(eGameBoard& board,
     for(int i = 0; i < mNPts; i++) {
         mBs.push_back(nullptr);
     }
+    // a peddler of the original walks 43 tiles and the next one
+    // leaves sooner than other walkers do
+    setMaxDistance(eNumbers::sPeddlerMaxDistance);
+    setWaitTime(eNumbers::sPeddlerWaitTime);
     setSpawnPatrolers(false);
 }
 

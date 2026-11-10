@@ -49,6 +49,8 @@ public:
     bool spawnPatrolers() const { return mSpawnPatrolers; }
 
     int maxDistance() const { return mMaxDistance; }
+    void setMaxDistance(const int d) { mMaxDistance = d; }
+    void setWaitTime(const int w) { mWaitTime = w; }
 
     bool spawnsPatrolers() const;
 
@@ -86,9 +88,9 @@ private:
 
     bool mSpawnPatrolers = true;
 
-    const int mMaxDistance = eNumbers::sPatrolerMaxDistance;
+    int mMaxDistance = eNumbers::sPatrolerMaxDistance;
 
-    const int mWaitTime = eNumbers::sPatrolerWaitTime;
+    int mWaitTime = eNumbers::sPatrolerWaitTime;
     double mSpawnTime = 1000000;
     stdptr<eCharacter> mChar;
 
