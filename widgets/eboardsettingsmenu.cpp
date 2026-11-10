@@ -168,7 +168,6 @@ void eBoardSettingsMenu::initialize(
     addWidget(resizeButt);
     resizeButt->align(eAlignment::hcenter);
 
-#ifdef __unix__
     const auto generateButt = new eFramedButton(window());
     generateButt->setUnderline(false);
     generateButt->setText(eLanguage::text("generate"));
@@ -185,6 +184,38 @@ void eBoardSettingsMenu::initialize(
         iw->setNoPadding();
         generateMenu->addWidget(iw);
         iw->move(p, p);
+
+        // the size of the board: the current one, the sizes of the
+        // original editor, and multiples of its largest map
+        const auto sizeW = new eWidget(window());
+        sizeW->setNoPadding();
+        const auto sizeL = new eLabel(window());
+        sizeL->setText(eLanguage::text("size"));
+        sizeL->fitContent();
+        sizeW->addWidget(sizeL);
+        const auto sizeB = new eSwitchButton(window());
+        sizeB->setUnderline(false);
+        struct eSize { int fW; int fH; const char* fMult; };
+        const std::vector<eSize> sizes = {
+            {0, 0, ""},
+            {42, 86, ""}, {56, 114, ""}, {70, 142, ""},
+            {86, 172, ""}, {114, 228, ""},
+            {162, 324, " (2x)"}, {228, 456, " (4x)"},
+            {324, 648, " (8x)"}, {456, 912, " (16x)"}};
+        for(const auto& sz : sizes) {
+            if(sz.fW == 0) {
+                sizeB->addValue(eLanguage::text("keep_size"));
+            } else {
+                sizeB->addValue(std::to_string(sz.fW) + " x " +
+                                std::to_string(sz.fH) + sz.fMult);
+            }
+        }
+        sizeB->fitValidContent();
+        sizeB->setValue(0);
+        sizeW->addWidget(sizeB);
+        sizeW->stackHorizontally();
+        sizeW->fitContent();
+        iw->addWidget(sizeW);
 
         const auto editW = new eWidget(window());
         editW->setNoPadding();
@@ -223,66 +254,48 @@ void eBoardSettingsMenu::initialize(
         };
 
         using eMGS = eMapGeneratorSettings;
+        const auto& last = eMGS::sLast;
 
+        // shares of the map in percent
         eNumLineEdit* waterE;
-        const auto waterW = createW("water",
-                                    eMGS::sLastWater,
-                                    waterE);
-        col1->addWidget(waterW);
-
+        col1->addWidget(createW("water", last.fWater, waterE));
         eNumLineEdit* forestE;
-        const auto forestW = createW("forest",
-                                     eMGS::sLastForest,
-                                     forestE);
-        col1->addWidget(forestW);
-
-        eNumLineEdit* forestToFertileE;
-        const auto forestToFertileW = createW("forest_to_fertile",
-                                              eMGS::sLastForestToFertile,
-                                              forestToFertileE);
-        col1->addWidget(forestToFertileW);
-
+        col1->addWidget(createW("forest", last.fForest, forestE));
         eNumLineEdit* fertileE;
-        const auto fertileW = createW("fertile",
-                                      eMGS::sLastFertile,
-                                      fertileE);
-        col1->addWidget(fertileW);
-
-        eNumLineEdit* emptyDryE;
-        const auto emptyDryW = createW("empty_dry",
-                                       eMGS::sLastEmptyDry,
-                                       emptyDryE);
-        col1->addWidget(emptyDryW);
-
-        eNumLineEdit* scrubDryE;
-        const auto scrubDryW = createW("scrub_dry",
-                                       eMGS::sLastScrubDry,
-                                       scrubDryE);
-        col2->addWidget(scrubDryW);
-
-        eNumLineEdit* flatStonesE;
-        const auto flatStonesW = createW("flat_stones",
-                                         eMGS::sLastFlatStones,
-                                         flatStonesE);
-        col2->addWidget(flatStonesW);
-
-        eNumLineEdit* tallStonesE;
-        const auto tallStonesW = createW("tall_stones",
-                                         eMGS::sLastTallStones,
-                                         tallStonesE);
-        col2->addWidget(tallStonesW);
-
+        col1->addWidget(createW("fertile", last.fFertile, fertileE));
+        eNumLineEdit* stonesE;
+        col1->addWidget(createW("stones", last.fStones, stonesE));
         eNumLineEdit* elevationE;
-        const auto elevationW = createW("elevation",
-                                        eMGS::sLastElevation,
-                                        elevationE);
-        col2->addWidget(elevationW);
-
+        col1->addWidget(createW("elevation", last.fElevation, elevationE));
+        eNumLineEdit* scrubE;
+        col1->addWidget(createW("scrub", last.fScrub, scrubE));
+        eNumLineEdit* seedE;
+        col1->addWidget(createW("seed", last.fSeed, seedE));
+        seedE->setRange(0, 999999);
         eNumLineEdit* cityE;
-        const auto cityW = createW("city",
-                                   static_cast<int>(eMGS::sLastCid),
-                                   cityE);
-        col2->addWidget(cityW);
+        col1->addWidget(createW("city", static_cast<int>(last.fCid), cityE));
+
+        // counts per 10000 tiles
+        const auto perL = new eLabel(window());
+        perL->setText(eLanguage::text("per_26000_tiles"));
+        perL->fitContent();
+        col2->addWidget(perL);
+        eNumLineEdit* lakesE;
+        col2->addWidget(createW("lakes", last.fLakes, lakesE));
+        eNumLineEdit* riversE;
+        col2->addWidget(createW("rivers", last.fRivers, riversE));
+        eNumLineEdit* copperE;
+        col2->addWidget(createW("copper", last.fCopper, copperE));
+        eNumLineEdit* silverE;
+        col2->addWidget(createW("silver", last.fSilver, silverE));
+        eNumLineEdit* marbleE;
+        col2->addWidget(createW("marble", last.fMarble, marbleE));
+        eNumLineEdit* orichalcE;
+        col2->addWidget(createW("orichalc", last.fOrichalc, orichalcE));
+        eNumLineEdit* animalsE;
+        col2->addWidget(createW("animals", last.fAnimals, animalsE));
+        eNumLineEdit* fishE;
+        col2->addWidget(createW("fish_points", last.fFish, fishE));
 
         col1->stackVertically();
         col1->fitContent();
@@ -298,22 +311,35 @@ void eBoardSettingsMenu::initialize(
         const auto accept = new eAcceptButton(window());
         const auto cancel = new eCancelButton(window());
         accept->setPressAction([generateMenu, boardPtr, gw,
-                               waterE, forestE, forestToFertileE,
-                               fertileE, emptyDryE, scrubDryE,
-                               flatStonesE, tallStonesE,
-                               elevationE, cityE]() {
+                               sizeB, sizes,
+                               waterE, forestE, fertileE, stonesE,
+                               elevationE, scrubE, seedE, cityE,
+                               lakesE, riversE, copperE, silverE,
+                               marbleE, orichalcE, animalsE, fishE]() {
+            const auto& sz = sizes[sizeB->currentValue()];
+            if(sz.fW > 0 && (sz.fW != boardPtr->width() ||
+                             sz.fH != boardPtr->height())) {
+                boardPtr->resize(sz.fW, sz.fH);
+                gw->updateViewBoxSize();
+            }
             eMapGenerator g(*boardPtr);
             eMapGeneratorSettings sett;
             sett.fWater = waterE->value();
             sett.fForest = forestE->value();
-            sett.fForestToFertile = forestToFertileE->value();
             sett.fFertile = fertileE->value();
-            sett.fEmptyDry = emptyDryE->value();
-            sett.fScrubDry = scrubDryE->value();
-            sett.fFlatStones = flatStonesE->value();
-            sett.fTallStones = tallStonesE->value();
+            sett.fStones = stonesE->value();
             sett.fElevation = elevationE->value();
+            sett.fScrub = scrubE->value();
+            sett.fSeed = seedE->value();
             sett.fCid = static_cast<eCityId>(cityE->value());
+            sett.fLakes = lakesE->value();
+            sett.fRivers = riversE->value();
+            sett.fCopper = copperE->value();
+            sett.fSilver = silverE->value();
+            sett.fMarble = marbleE->value();
+            sett.fOrichalc = orichalcE->value();
+            sett.fAnimals = animalsE->value();
+            sett.fFish = fishE->value();
             g.generate(sett);
             gw->updateTopBottomAltitude();
             gw->updateMinMaxAltitude();
@@ -340,7 +366,6 @@ void eBoardSettingsMenu::initialize(
     });
     addWidget(generateButt);
     generateButt->align(eAlignment::hcenter);
-#endif
 
     const auto clearButt = new eFramedButton(window());
     clearButt->setUnderline(false);

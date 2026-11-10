@@ -22,6 +22,8 @@
 #include "characters/echaracter.h"
 
 #include "engine/ethreadpool.h"
+#include "engine/emapstats.h"
+#include "engine/emapgenerator.h"
 
 #include "egamedir.h"
 
@@ -362,6 +364,13 @@ void eMainWindow::printCitySummary() const {
     }
     const auto emp = mBoard->employmentData(cid);
     const auto& d = b.date();
+    // real time since the last report, to compare the speed of the game
+    static auto last = std::chrono::steady_clock::now();
+    const auto now = std::chrono::steady_clock::now();
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
+    last = now;
+    printf("[%lld ms, board %d x %d] ", static_cast<long long>(ms.count()),
+           b.width(), b.height());
     printf("%d/%02d people %d drachmas %d | common%s | elite%s | missing%s | "
            "workers %d jobs %d | "
            "soldiers %d hoplites %d horsemen | nobles %d watchmen %d "
@@ -622,7 +631,42 @@ bool eMainWindow::loadGame(const std::string& path) {
     src.handlePostFuncs();
     file.close();
 
-    startGameAction(c, s);
+    if(mResizeW <= 0 && mSaveOut.empty()) {
+        startGameAction(c, s);
+        return true;
+    }
+    startGameAction([this, c, s]() {
+        showGame(c, s);
+        if(mResizeW > 0 && mResizeH > 0 && mBoard) {
+            const auto t0 = std::chrono::steady_clock::now();
+            mBoard->resize(mResizeW, mResizeH);
+            mGW->updateViewBoxSize();
+            mGW->updateTopBottomAltitude();
+            mGW->updateMinMaxAltitude();
+            mGW->updateMaps(true);
+            const auto t1 = std::chrono::steady_clock::now();
+            const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
+            printf("Resized the board to %d x %d in %lld ms\n",
+                   mBoard->width(), mBoard->height(),
+                   static_cast<long long>(ms.count()));
+            mResizeW = 0;
+            mResizeH = 0;
+        }
+        if(!mSaveOut.empty()) {
+            const auto t0 = std::chrono::steady_clock::now();
+            const bool r = saveGame(mSaveOut);
+            const auto t1 = std::chrono::steady_clock::now();
+            const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
+            if(r) {
+                printf("Saved '%s' in %lld ms\n", mSaveOut.c_str(),
+                       static_cast<long long>(ms.count()));
+            } else {
+                printf("Could not save '%s'\n", mSaveOut.c_str());
+            }
+            mSaveOut.clear();
+            if(mAutoplayMonths <= 0) mQuit = true;
+        }
+    });
     return true;
 }
 
@@ -652,6 +696,37 @@ void eMainWindow::showRosterOfLeaders() {
 void eMainWindow::showMenuLoading() {
     const auto mlw = new eMenuLoadingWidget(this);
     mlw->setDoneAction([this]() {
+        if(!mMapStats.empty()) {
+            const auto path = mMapStats == "Adventures/" ?
+                                  eGameDir::pakAdventuresDir() : mMapStats;
+            eMapStats::sRun(path);
+            mMapStats.clear();
+            mQuit = true;
+            return;
+        }
+        if(mGenW > 0 && mGenH > 0) {
+            const auto c = std::make_shared<eCampaign>();
+            c->initialize("generated");
+            auto& board = c->parentCityBoard();
+            board.initialize(mGenW, mGenH);
+            eMapGenerator g(board);
+            eMapGeneratorSettings sett;
+            sett.fSeed = mGenSeed;
+            const auto t0 = std::chrono::steady_clock::now();
+            g.generate(sett);
+            const auto t1 = std::chrono::steady_clock::now();
+            const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0);
+            printf("Generated a %d x %d map in %lld ms\n", mGenW, mGenH,
+                   static_cast<long long>(ms.count()));
+            eMapStats::sPrintHeader();
+            eMapStats::sPrint("generated", "parent", board);
+            const bool img = eMapStats::sWriteImage(board, "generated.ppm");
+            if(img) printf("Wrote generated.ppm\n");
+            mGenW = 0;
+            mGenH = 0;
+            mQuit = true;
+            return;
+        }
         if(!mImportSav.empty()) {
             const bool r = importOriginalSave(mImportSav, mImportOut);
             mImportSav.clear();

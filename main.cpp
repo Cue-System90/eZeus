@@ -105,9 +105,17 @@ int main(int argc, char** argv) {
     // eZeus --import-sav <original .sav> [<converted .ez>]
     // eZeus --load <saved game .ez>
     // either of the two followed by --autoplay <months>
+    // --load may be followed by --resize <width> <height> and --save <.ez>
     std::string importSav;
     std::string importOut;
     std::string load;
+    std::string saveOut;
+    std::string mapStats;
+    int genW = 0;
+    int genH = 0;
+    int genSeed = 0;
+    int resizeW = 0;
+    int resizeH = 0;
     int autoplay = 0;
     for(int i = 1; i < argc; i++) {
         const std::string arg = argv[i];
@@ -120,6 +128,24 @@ int main(int argc, char** argv) {
             load = argv[++i];
         } else if(arg == "--autoplay" && i + 1 < argc) {
             autoplay = std::atoi(argv[++i]);
+        } else if(arg == "--resize" && i + 2 < argc) {
+            resizeW = std::atoi(argv[++i]);
+            resizeH = std::atoi(argv[++i]);
+        } else if(arg == "--save" && i + 1 < argc) {
+            saveOut = argv[++i];
+        } else if(arg == "--generate" && i + 2 < argc) {
+            // generates a map of the size, prints its statistics and ends
+            genW = std::atoi(argv[++i]);
+            genH = std::atoi(argv[++i]);
+            if(i + 1 < argc && std::string(argv[i + 1]).rfind("--", 0) != 0) {
+                genSeed = std::atoi(argv[++i]);
+            }
+        } else if(arg == "--map-stats") {
+            // the adventures directory unless a .pak or directory follows
+            mapStats = "Adventures/";
+            if(i + 1 < argc && std::string(argv[i + 1]).rfind("--", 0) != 0) {
+                mapStats = argv[++i];
+            }
         }
     }
 
@@ -206,6 +232,10 @@ int main(int argc, char** argv) {
         if(!i) return 1;
         if(!importSav.empty()) w.setStartupImport(importSav, importOut);
         if(!load.empty()) w.setStartupLoad(load);
+        if(resizeW > 0 && resizeH > 0) w.setStartupResize(resizeW, resizeH);
+        if(!saveOut.empty()) w.setStartupSave(saveOut);
+        if(!mapStats.empty()) w.setStartupMapStats(mapStats);
+        if(genW > 0 && genH > 0) w.setStartupGenerate(genW, genH, genSeed);
         if(autoplay > 0) w.setStartupAutoplay(autoplay);
         const bool e = eGameTextures::initialize(w.renderer());
 

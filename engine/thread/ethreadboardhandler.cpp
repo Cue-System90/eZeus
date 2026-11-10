@@ -9,6 +9,9 @@ eThreadBoardHandler::eThreadBoardHandler() {}
 void eThreadBoardHandler::initialize(const int w, const int h) {
     mBoard.initialize(w, h);
     mTmpBoard.initialize(w, h);
+    // the boards are empty now, the next update has to copy everything
+    // again, not only what changed since the last state
+    mInitialized = false;
 }
 
 void eThreadBoardHandler::updateAll(eGameBoard& board, const eBoardCity& c) {

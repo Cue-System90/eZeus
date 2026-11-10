@@ -28,7 +28,6 @@ win32 {
     LIBS += -lpthread
     LIBS += -L/usr/lib/x86_64-linux-gnu
     LIBS += -lstdc++fs
-    LIBS += -lnoise
 }
 LIBS += -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 
@@ -401,6 +400,7 @@ SOURCES += \
         engine/eguidedmovepathtask.cpp \
         engine/eknownendpathfinder.cpp \
         engine/emapgenerator.cpp \
+        engine/emapstats.cpp \
         engine/emilitaryaid.cpp \
         engine/epathboard.cpp \
         engine/epathfinder.cpp \
@@ -1100,6 +1100,8 @@ HEADERS += \
     engine/eguidedmovepathtask.h \
     engine/eknownendpathfinder.h \
     engine/emapgenerator.h \
+    engine/emapstats.h \
+    engine/eperlinnoise.h \
     engine/emessageeventtype.h \
     engine/emilitaryaid.h \
     engine/emovedirection.h \

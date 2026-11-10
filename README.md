@@ -115,6 +115,42 @@ people walking about. An imported city plays on without the goals of its
 episode. eZeus' sanctuaries are larger than the original ones; they go
 where they cover the fewest roads and buildings nearby.
 
+### Larger maps and a map generator
+
+The maps of the original go up to 228 x 228 tiles, half of which lie
+inside the playable diamond. eZeus keeps the whole map in a grid of 114 x
+228 "dtiles" and the editor can resize a board up to 999 x 999, which is
+38 times the area of the largest original map. A city of 3500 people runs
+at the same speed on a board of 16 times the original area, saves in a
+few hundred milliseconds and loads again, so there is no limit to raise
+here, only the empty space to fill. Two things stood in the way and are
+fixed: resizing wiped the desirability map until a building changed, so
+the houses devolved and the people left, and the copies of the board that
+the worker threads use stayed empty after a resize.
+
+The map generator of the editor (board settings, "Generate") no longer
+needs libnoise and so works on Windows too. It is built from the maps of
+the original adventures: `eZeus --map-stats` reads all 80 boards of the
+adventures and prints what they are made of, and the defaults of the
+generator are the medians of that - 22% water, 8% forest, 3% fertile
+land, 2% stones, 4% of the land raised, a river on most maps, a lake on
+one in four, about three animal points and two fishing points on the
+largest maps. The counts are given per 26000 tiles (the largest original
+map) and scale with the area, so a map four times as large gets four
+times as many rivers, lakes, ore patches, animals and fish. The generator
+makes the sea along one or two sides with beaches, winding rivers with
+their entry and exit points, lakes, meadows by the water, forests, hills
+with slopes, stone fields with copper, silver, marble and orichalc,
+animal and fishing points and the entry and exit of the map. The whole
+map becomes the territory of the chosen city.
+
+```
+eZeus --generate <width> <height> [<seed>]
+```
+
+generates a map without the editor, prints its statistics and writes a
+picture of it as `generated.ppm`, which is how the generator was tuned.
+
 ### Running a city unattended
 
 ```
@@ -122,7 +158,9 @@ eZeus --load <saved game .ez> --autoplay <months>
 ```
 
 runs a city at the highest speed, reports it once a month and ends. It
-also works after `--import-sav`.
+also works after `--import-sav`. `--load` may be followed by
+`--resize <width> <height>`, which changes the size of the board, and
+`--save <.ez>`, which saves the game right away.
 
 ## How To Build on macOS
 

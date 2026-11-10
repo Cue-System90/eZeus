@@ -93,6 +93,19 @@ public:
                           const std::string& out);
     // loads a saved game right after the start
     void setStartupLoad(const std::string& path) { mLoad = path; }
+    // changes the size of the board of the loaded game, tiles in dtile
+    // columns and rows (the largest map of the original is 114 x 230)
+    void setStartupResize(const int w, const int h)
+    { mResizeW = w; mResizeH = h; }
+    // saves the loaded game right away; without --autoplay the program ends
+    void setStartupSave(const std::string& path) { mSaveOut = path; }
+    // prints what the maps of the adventures (directory or .pak) are
+    // made of, then ends the program
+    void setStartupMapStats(const std::string& path) { mMapStats = path; }
+    // generates a map of the size with the default settings, prints its
+    // statistics like --map-stats and ends the program
+    void setStartupGenerate(const int w, const int h, const int seed)
+    { mGenW = w; mGenH = h; mGenSeed = seed; }
     // lets the game run on its own for months after loading or importing,
     // reports the city every month and ends the program
     void setStartupAutoplay(const int months) { mAutoplayMonths = months; }
@@ -109,6 +122,13 @@ private:
     std::string mImportSav;
     std::string mImportOut;
     std::string mLoad;
+    std::string mSaveOut;
+    std::string mMapStats;
+    int mGenW = 0;
+    int mGenH = 0;
+    int mGenSeed = 0;
+    int mResizeW = 0;
+    int mResizeH = 0;
     int mAutoplayMonths = 0;
     int mAutoplayMonth = -1;
     int mAutoplayStillFrames = 0;

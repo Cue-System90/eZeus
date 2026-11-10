@@ -181,6 +181,11 @@ void eGameBoard::resize(const int w, const int h) {
     mHeight = h;
 
     mAppealMap.initialize(0, 0, w, h);
+    // the map starts empty, without this the houses lose their
+    // desirability until a building changes, and devolve meanwhile
+    for(const auto& c : mCitiesOnBoard) {
+        scheduleAppealMapUpdate(c->id());
+    }
 
     updateNeighbours();
 //    updateMarbleTiles();
