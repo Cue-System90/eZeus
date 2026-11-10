@@ -163,6 +163,21 @@ void ZeusSaveFile::readBuildings() {
                                           eResourceType::wheat;
                 b.fGoods.push_back({res, n});
             }
+        } else if(type == 63 || type == 64) { // agora
+            // what its stalls hold: the kinds of food like in a granary,
+            // then one amount per good
+            int food = 0;
+            for(int i = 0; i < 8; i++) food += readShort(86 + 2*i);
+            const auto add = [&](const eResourceType res, const int n) {
+                const int loads = (n + 50)/100;
+                if(loads > 0) b.fGoods.push_back({res, loads});
+            };
+            add(eResourceType::food, food);
+            add(eResourceType::armor, readShort(102));
+            add(eResourceType::fleece, readShort(104));
+            add(eResourceType::oliveOil, readShort(106));
+            add(eResourceType::wine, readShort(108));
+            add(eResourceType::horse, readShort(116));
         }
     }
     pk.empty();

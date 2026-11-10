@@ -79,9 +79,11 @@ carrot farms had swapped values before.
 ### Agora stalls keep less
 
 Upstream let a stall for fleece, oil or wine keep ten loads. The stalls of
-the original hold about two and a half, and with ten the agoras next to
-the warehouses took a whole year's supply before the others got any. A
-stall now keeps three loads (`basic_vendor_max_resource_i`).
+the original never hold more than four in its saved games, and with ten
+the agoras next to the warehouses took a whole year's supply before the
+others got any. A stall now keeps four loads
+(`basic_vendor_max_resource_i`). Food stays at ten; the original keeps up
+to eleven.
 
 ### Importing saved games of the original
 
@@ -91,7 +93,8 @@ eZeus --import-sav <original .sav> [<converted .ez>]
 
 starts the city of a saved game of Zeus or Poseidon on the map of its
 adventure, or saves it as an eZeus game. The buildings come with their
-stocks, the storages and trade posts with their orders, and the sheep and
+stocks, the agoras with what their stalls hold, the storages and trade
+posts with their orders, and the sheep and
 goats with their sheds. Avenues are taken over tile by tile; a boulevard
 becomes a road with an avenue on both sides, as eZeus has no boulevards.
 Without them the houses, podiums and theatres behind an avenue had no road

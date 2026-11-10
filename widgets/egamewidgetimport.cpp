@@ -5,6 +5,7 @@
 #include "pak/zeusfile.h"
 #include "pak/zeussavefile.h"
 #include "buildings/eavenue.h"
+#include "buildings/evendor.h"
 #include "characters/esheep.h"
 #include "characters/egoat.h"
 #include "buildings/sanctuaries/esanctuaryblueprint.h"
@@ -334,6 +335,13 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
             const auto vb = t->underBuilding();
             if(vb && vb->type() != eBuildingType::agoraSpace) placed++;
             else failed[v->fType]++;
+            // the original keeps the goods of the stalls with the agora
+            if(const auto ven = dynamic_cast<eVendor*>(vb)) {
+                for(const auto& g : head.fGoods) {
+                    if(g.first != ven->resourceType()) continue;
+                    ven->add(g.first, g.second);
+                }
+            }
         }
         return true;
     };

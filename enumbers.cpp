@@ -565,9 +565,9 @@ void eNumbers::sLoad(const std::string& path) {
 
     loadI("basic_vendor_max_resource_take_distance_i", sBasicVendorMaxResourceTakeDistance, 60, 5, 1000);
     // loads a stall for fleece, oil or wine keeps at most. The original
-    // holds about two and a half, so a few agoras near the warehouses
+    // holds four at most, so a few agoras near the warehouses
     // cannot take what all the others need
-    loadI("basic_vendor_max_resource_i", sBasicVendorMaxResource, 3, 1, 100);
+    loadI("basic_vendor_max_resource_i", sBasicVendorMaxResource, 4, 1, 100);
     // how many tiles around itself a walker serves. In the original a
     // building has to touch the road or an avenue, which is 1
     loadI("walker_provide_distance_i", sWalkerProvideDistance, 1, 1, 3);

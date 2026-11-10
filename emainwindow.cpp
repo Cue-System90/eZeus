@@ -385,6 +385,26 @@ void eMainWindow::printCitySummary() const {
            stock(eResourceType::oliveOil).c_str(),
            stock(eResourceType::wine).c_str(),
            stock(eResourceType::food).c_str());
+    // the houses that lack a good the agoras sell
+    {
+        std::string lack;
+        for(const auto bb : houses) {
+            const auto h = static_cast<eHouseBase*>(bb);
+            if(h->people() <= 0) continue;
+            const auto m = h->missing();
+            const char* n = nullptr;
+            if(m == eHouseMissing::food) n = "food";
+            else if(m == eHouseMissing::fleece) n = "fleece";
+            else if(m == eHouseMissing::oil) n = "oil";
+            else if(m == eHouseMissing::wine) n = "wine";
+            if(!n) continue;
+            const auto ct = bb->centerTile();
+            lack += std::string(" ") + n + "@" +
+                    std::to_string(ct ? ct->x() : -1) + "," +
+                    std::to_string(ct ? ct->y() : -1);
+        }
+        if(!lack.empty()) printf("  lacking%s\n", lack.c_str());
+    }
     // culture: houses without each kind, and what the venues do
     {
         int noPh = 0, noAc = 0, noAt = 0, noCo = 0, inh = 0;
