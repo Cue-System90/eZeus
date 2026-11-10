@@ -17,6 +17,7 @@
 #include "buildings/esmallhouse.h"
 #include "buildings/eelitehousing.h"
 #include "buildings/eagorabase.h"
+#include "buildings/epatroltarget.h"
 #include "buildings/evendor.h"
 #include "characters/echaracter.h"
 
@@ -41,6 +42,7 @@
 #include "widgets/eepisodelostwidget.h"
 #include "widgets/erosterofleaders.h"
 #include <cmath>
+#include <set>
 
 eMainWindow::eMainWindow() {}
 
@@ -383,6 +385,43 @@ void eMainWindow::printCitySummary() const {
            stock(eResourceType::oliveOil).c_str(),
            stock(eResourceType::wine).c_str(),
            stock(eResourceType::food).c_str());
+    // culture: houses without each kind, and what the venues do
+    {
+        int noPh = 0, noAc = 0, noAt = 0, noCo = 0, inh = 0;
+        for(const auto bb : houses) {
+            const auto h = static_cast<eHouseBase*>(bb);
+            if(h->people() <= 0) continue;
+            inh++;
+            if(h->philosophersInventors() <= 0) noPh++;
+            if(h->actorsAstronomers() <= 0) noAc++;
+            if(h->athletesScholars() <= 0) noAt++;
+            if(h->competitorsCurators() <= 0) noCo++;
+        }
+        printf("  culture houses %d without philosophers %d actors %d "
+               "athletes %d competitors %d\n", inh, noPh, noAc, noAt, noCo);
+        // podiums, theatres and stadiums that no philosopher, actor or
+        // athlete has reached, so they send nobody to the houses
+        int targets = 0;
+        std::string idle;
+        const auto cb = b.buildings(cid, [](eBuilding* const bb) {
+            const auto t = bb->type();
+            return t == eBuildingType::stadium ||
+                   t == eBuildingType::podium ||
+                   t == eBuildingType::theater;
+        });
+        for(const auto bb : cb) {
+            const auto pt = dynamic_cast<ePatrolTarget*>(bb);
+            if(!pt) continue;
+            targets++;
+            if(pt->available()) continue;
+            const auto ct = bb->centerTile();
+            idle += " " + eBuilding::sNameForBuilding(bb) + "@" +
+                    std::to_string(ct ? ct->x() : -1) + "," +
+                    std::to_string(ct ? ct->y() : -1);
+        }
+        printf("  venues %d, idle:%s\n", targets,
+               idle.empty() ? " none" : idle.c_str());
+    }
     // what the stalls of each agora hold, in hundredths of a load
     std::string stalls;
     for(const auto a : b.agoras(cid)) {

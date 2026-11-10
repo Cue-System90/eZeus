@@ -568,9 +568,9 @@ void eNumbers::sLoad(const std::string& path) {
     // holds about two and a half, so a few agoras near the warehouses
     // cannot take what all the others need
     loadI("basic_vendor_max_resource_i", sBasicVendorMaxResource, 3, 1, 100);
-    // how many tiles from its road a walker reaches the buildings it
-    // serves. The original serves houses one tile away from the road
-    loadI("walker_provide_distance_i", sWalkerProvideDistance, 2, 1, 3);
+    // how many tiles around itself a walker serves. In the original a
+    // building has to touch the road or an avenue, which is 1
+    loadI("walker_provide_distance_i", sWalkerProvideDistance, 1, 1, 3);
     loadI("horse_vendor_max_resource_take_distance_i", sHorseVendorMaxResourceTakeDistance, 200, 5, 1000);
 
     loadI("resource_building_max_resource_give_distance_i", sResourceBuildingMaxResourceGiveDistance, 60, 5, 1000);

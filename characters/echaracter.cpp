@@ -203,8 +203,8 @@ void eCharacter::changeTile(eTile* const t, const bool prepend) {
     if(t) t->addCharacter(tsptr, prepend);
     else deleteLater();
     if(t && mProvide != eProvide::none && mProvideCount > 0) {
-        // a building one tile away from the road is served too, like
-        // in the original; the same building is served once a step
+        // the buildings around the walker, each once a step; avenues
+        // pass the service on to the buildings behind them
         const int d = eNumbers::sWalkerProvideDistance;
         std::set<eBuilding*> served;
         for(int x = -d; x <= d; x++) {

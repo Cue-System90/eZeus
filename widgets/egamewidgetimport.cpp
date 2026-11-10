@@ -4,6 +4,7 @@
 #include "buildings/allbuildings.h"
 #include "pak/zeusfile.h"
 #include "pak/zeussavefile.h"
+#include "buildings/eavenue.h"
 #include "characters/esheep.h"
 #include "characters/egoat.h"
 #include "buildings/sanctuaries/esanctuaryblueprint.h"
@@ -607,7 +608,9 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
         } else {
             const auto mode = sModeForType(type);
             if(mode == eBuildingMode::none) {
-                skipped[type]++;
+                // 118 and 126 stand for all avenues and boulevards,
+                // which are taken from the terrain below
+                if(type != 118 && type != 126) skipped[type]++;
                 continue;
             }
             ok = rectOf(parts, r);
@@ -657,6 +660,50 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
         }
         if(ok) animals++;
         else animalsFailed++;
+    }
+
+    // avenues and boulevards are no buildings of their own in the saved
+    // game: their tiles carry the building flag next to a road without
+    // belonging to any building. A boulevard is a road with an avenue on
+    // both sides here.
+    int avenues = 0;
+    int avenuesFailed = 0;
+    {
+        std::set<eTile*> covered;
+        for(const auto& b : save.buildings()) {
+            for(int i = 0; i < b.fSize; i++) {
+                for(int j = 0; j < b.fSize; j++) {
+                    const auto t = tiles[b.fY + j][b.fX + i].fTile;
+                    if(t) covered.insert(t);
+                }
+            }
+        }
+        const auto isRoad = [&](const int x, const int y) {
+            if(x < 0 || y < 0 || x >= 228 || y >= 228) return false;
+            return (save.terrain().get(x, y) & 0x40) != 0;
+        };
+        for(auto& row : tiles) {
+            for(auto& col : row.second) {
+                const auto t = col.second.fTile;
+                if(!t || covered.count(t)) continue;
+                const int x = col.first + border;
+                const int y = row.first + border;
+                const uint32_t terr = save.terrain().get(x, y);
+                if(!(terr & 0x8) || terr & 0x40) continue;
+                if(!isRoad(x - 1, y) && !isRoad(x + 1, y) &&
+                   !isRoad(x, y - 1) && !isRoad(x, y + 1)) continue;
+                bool ok = !t->underBuilding() &&
+                          board.canBuildAvenue(t, cid, pid, true);
+                if(ok) {
+                    ok = board.build(t->x(), t->y(), 1, 1, cid, pid, true,
+                                     [&]() {
+                        return e::make_shared<eAvenue>(board, cid);
+                    }, false, true);
+                }
+                if(ok) avenues++;
+                else avenuesFailed++;
+            }
+        }
     }
 
     // the level of a house depends on the appeal around it, which comes
@@ -719,6 +766,10 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
     if(animals || animalsFailed) {
         report += ", animals " + std::to_string(animals) +
                   " of " + std::to_string(animals + animalsFailed);
+    }
+    if(avenues || avenuesFailed) {
+        report += ", avenue tiles " + std::to_string(avenues) +
+                  " of " + std::to_string(avenues + avenuesFailed);
     }
     report += ", house levels:";
     for(const auto& l : levels) {
