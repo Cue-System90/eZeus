@@ -142,6 +142,11 @@ void ZeusSaveFile::readBuildings() {
         b.fX = readShort(6);
         b.fY = readShort(8);
         b.fPeople = readShort(28);
+        if(type >= 2 && type <= 14) {
+            b.fFleece = readShort(102);
+            b.fOil = readShort(104);
+            b.fWine = readShort(106);
+        }
         b.fPrev = readShort(56);
         b.fNext = readShort(58);
         b.fRotation = e[172];

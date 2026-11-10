@@ -248,22 +248,23 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
             return house;
         });
         if(!built || !house) return false;
-        // The supplies of a house are not decoded yet, so it starts well
-        // supplied and the walkers take over from there. Every supply
+        // A house comes with the fleece, oil and wine it held. Its other
+        // supplies are not decoded yet, so it starts well supplied with
+        // them and the walkers take over from there. Every supply
         // recomputes the level and a level too low for the people evicts
         // them, so one moves in first, the level rises with the supplies
         // and the rest follow once there is room.
         house->moveIn(1);
         house->provide(eProvide::water, 100);
         house->provide(eProvide::food, 1000);
-        house->provide(eProvide::fleece, 100);
-        house->provide(eProvide::oil, 100);
+        house->provide(eProvide::fleece, b.fFleece);
+        house->provide(eProvide::oil, b.fOil);
         house->provide(eProvide::philosopherInventor, 100);
         house->provide(eProvide::actorAstronomer, 100);
         house->provide(eProvide::gymnastScholar, 100);
         house->provide(eProvide::competitorCurator, 100);
         if(elite) {
-            house->provide(eProvide::wine, 100);
+            house->provide(eProvide::wine, b.fWine);
             house->provide(eProvide::arms, 100);
             house->provide(eProvide::horses, 100);
         }
@@ -439,6 +440,19 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
             for(int j = 0; j < b.fSize; j++) {
                 const auto t = tiles[b.fY + j][b.fX + i].fTile;
                 if(t) occupied.insert(t);
+            }
+        }
+    }
+
+    // The boars and deer of the map roam where the city stands, and a
+    // building does not go on a tile somebody stands on.
+    for(const auto& b : save.buildings()) {
+        for(int i = 0; i < b.fSize; i++) {
+            for(int j = 0; j < b.fSize; j++) {
+                const auto t = tiles[b.fY + j][b.fX + i].fTile;
+                if(!t) continue;
+                const auto chars = t->characters();
+                for(const auto& c : chars) c->kill();
             }
         }
     }

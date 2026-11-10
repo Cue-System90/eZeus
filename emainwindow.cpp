@@ -404,6 +404,21 @@ void eMainWindow::printCitySummary() const {
                     std::to_string(ct ? ct->y() : -1);
         }
         if(!lack.empty()) printf("  lacking%s\n", lack.c_str());
+        // how much fleece the common houses hold, to compare with
+        // the houses of a saved game of the original
+        std::map<int, int> held;
+        for(const auto bb : houses) {
+            const auto h = static_cast<eHouseBase*>(bb);
+            if(h->people() <= 0) continue;
+            if(h->type() != eBuildingType::commonHouse) continue;
+            held[h->fleece()]++;
+        }
+        std::string hs;
+        for(const auto& hh : held) {
+            hs += " " + std::to_string(hh.first) + ":" +
+                  std::to_string(hh.second);
+        }
+        printf("  fleece in common houses%s\n", hs.c_str());
     }
     // culture: houses without each kind, and what the venues do
     {

@@ -23,6 +23,10 @@ struct eZeusSaveBuilding {
     int fPrev = 0;
     int fNext = 0;
     int fPeople = 0;
+    // what a house holds
+    int fFleece = 0;
+    int fOil = 0;
+    int fWine = 0;
     // what a warehouse space or a granary holds, in eZeus units
     std::vector<std::pair<eResourceType, int>> fGoods;
 
