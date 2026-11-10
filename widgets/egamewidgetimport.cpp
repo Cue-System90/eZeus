@@ -248,15 +248,15 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
             return house;
         });
         if(!built || !house) return false;
-        // A house comes with the fleece, oil and wine it held. Its other
-        // supplies are not decoded yet, so it starts well supplied with
-        // them and the walkers take over from there. Every supply
+        // A house comes with the food, fleece, oil and wine it held. Its
+        // other supplies are not decoded yet, so it starts well supplied
+        // with them and the walkers take over from there. Every supply
         // recomputes the level and a level too low for the people evicts
         // them, so one moves in first, the level rises with the supplies
         // and the rest follow once there is room.
         house->moveIn(1);
         house->provide(eProvide::water, 100);
-        house->provide(eProvide::food, 1000);
+        if(b.fFood > 0) house->provide(eProvide::food, 1000);
         house->provide(eProvide::fleece, b.fFleece);
         house->provide(eProvide::oil, b.fOil);
         house->provide(eProvide::philosopherInventor, 100);
@@ -270,7 +270,7 @@ std::string eGameWidget::importOriginalSave(const ZeusSaveFile& save) {
         }
         house->moveIn(b.fPeople - house->people());
         // a house stores food for its people, who were one so far
-        house->provide(eProvide::food, 1000);
+        house->provide(eProvide::food, b.fFood - house->food());
         return true;
     };
 

@@ -105,7 +105,7 @@ eZeus --import-sav <original .sav> [<converted .ez>]
 starts the city of a saved game of Zeus or Poseidon on the map of its
 adventure, or saves it as an eZeus game. The buildings come with their
 stocks, the agoras with what their stalls hold, the storages and trade
-posts with their orders, the houses with their fleece, oil and wine, and
+posts with their orders, the houses with their food, fleece, oil and wine, and
 the sheep and goats with their sheds. Wild animals standing where a
 building goes are removed. Avenues are taken over tile by tile; a boulevard
 becomes a road with an avenue on both sides, as eZeus has no boulevards.

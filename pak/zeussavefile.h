@@ -24,6 +24,7 @@ struct eZeusSaveBuilding {
     int fNext = 0;
     int fPeople = 0;
     // what a house holds
+    int fFood = 0;
     int fFleece = 0;
     int fOil = 0;
     int fWine = 0;

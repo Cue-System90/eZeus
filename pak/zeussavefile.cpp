@@ -143,6 +143,7 @@ void ZeusSaveFile::readBuildings() {
         b.fY = readShort(8);
         b.fPeople = readShort(28);
         if(type >= 2 && type <= 14) {
+            b.fFood = readShort(84);
             b.fFleece = readShort(102);
             b.fOil = readShort(104);
             b.fWine = readShort(106);
