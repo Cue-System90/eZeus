@@ -164,7 +164,10 @@ eZeus --load <saved game .ez> --autoplay <months>
 runs a city at the highest speed, reports it once a month and ends. It
 also works after `--import-sav`. `--load` may be followed by
 `--resize <width> <height>`, which changes the size of the board, and
-`--save <.ez>`, which saves the game right away.
+`--save <.ez>`, which saves the game right away. All the tasks that end
+on their own (`--autoplay`, `--save`, `--import-sav` with an output
+file, `--map-stats`, `--generate`) run with a hidden window and never in
+fullscreen, so nothing flickers on the screen while they run.
 
 ## How To Build on macOS
 

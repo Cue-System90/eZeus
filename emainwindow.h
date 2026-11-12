@@ -23,7 +23,8 @@ public:
     eMainWindow();
     ~eMainWindow();
 
-    bool initialize(const eSettings& settings);
+    // hidden: no window on the screen, for the command line tasks
+    bool initialize(const eSettings& settings, const bool hidden = false);
 public:
 
     void setWidget(eWidget* const w);

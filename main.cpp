@@ -228,7 +228,14 @@ int main(int argc, char** argv) {
         eMusic music;
         eSounds sounds;
         eMainWindow w;
-        const bool i = w.initialize(settings);
+        // the tasks that end on their own run without a window on the
+        // screen, and never in fullscreen, which flickered the screen
+        // black at every start
+        const bool batch = !importOut.empty() || autoplay > 0 ||
+                           !mapStats.empty() || genW > 0 ||
+                           !saveOut.empty();
+        if(batch) settings.fFullscreen = false;
+        const bool i = w.initialize(settings, batch);
         if(!i) return 1;
         if(!importSav.empty()) w.setStartupImport(importSav, importOut);
         if(!load.empty()) w.setStartupLoad(load);

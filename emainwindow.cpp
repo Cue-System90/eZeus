@@ -54,14 +54,15 @@ eMainWindow::~eMainWindow() {
     setWidget(nullptr);
 }
 
-bool eMainWindow::initialize(const eSettings& settings) {
+bool eMainWindow::initialize(const eSettings& settings, const bool hidden) {
     const auto& res = settings.fRes;
     const int w = res.width();
     const int h = res.height();
     const auto window = SDL_CreateWindow("eZeus",
                                          SDL_WINDOWPOS_UNDEFINED,
                                          SDL_WINDOWPOS_UNDEFINED,
-                                         w, h, SDL_WINDOW_SHOWN);
+                                         w, h, hidden ? SDL_WINDOW_HIDDEN :
+                                                        SDL_WINDOW_SHOWN);
 
     if(!window) {
         printf("Window could not be created! SDL Error: %s\n",
