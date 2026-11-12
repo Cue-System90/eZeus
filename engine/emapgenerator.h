@@ -71,6 +71,13 @@ private:
     void generateSea(const eMGS& s, const std::vector<double>& height);
     void generateLakes(const eMGS& s, const std::vector<double>& height);
     void generateRivers(const eMGS& s, const std::vector<double>& height);
+    void worldPos(eTileBase* const t, double& x, double& y) const;
+    eTile* tileAt(const double x, const double y) const;
+    std::vector<std::pair<double, double>> walkRiver(
+            eTile* const source, const std::vector<int>& dist,
+            const eTileVerifier& mouth, const int seed) const;
+    void carveRiver(const std::vector<std::pair<double, double>>& path,
+                    const double halfWidth, const int seed);
     void generateBeach(const eMGS& s);
     void generateElevation(const eMGS& s, const std::vector<double>& height);
     void generateForest(const eMGS& s);
@@ -93,6 +100,7 @@ private:
     // the sides of the map the sea lies on: 0 top, 1 right, 2 bottom, 3 left
     std::vector<int> mSeaSides;
     std::vector<bool> mSea; // the water tiles that belong to the sea
+    std::vector<bool> mRiver; // the water tiles of the rivers
     // how many of something a map of this size gets
     int count(const int perUnit) const;
 };

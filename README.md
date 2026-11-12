@@ -138,11 +138,15 @@ one in four, about three animal points and two fishing points on the
 largest maps. The counts are given per 26000 tiles (the largest original
 map) and scale with the area, so a map four times as large gets four
 times as many rivers, lakes, ore patches, animals and fish. The generator
-makes the sea along one or two sides with beaches, winding rivers with
-their entry and exit points, lakes, meadows by the water, forests, hills
-with slopes, stone fields with copper, silver, marble and orichalc,
-animal and fishing points and the entry and exit of the map. The whole
-map becomes the territory of the chosen city.
+makes the sea along one or two sides with beaches, rivers like those of
+the original maps - five to nine tiles wide, meandering from a side of
+the map to the sea or right across, some with a tributary, with their
+entry and exit points - lakes, meadows in large patches with a liking
+for the rivers and lakes, forests, hills with slopes, stone fields with
+copper, silver, marble and orichalc, animal and fishing points and the
+entry and exit of the map. The whole map becomes the territory of the
+chosen city. Marble at the edge of the map crashed eZeus when the
+marble groups were collected; fixed.
 
 ```
 eZeus --generate <width> <height> [<seed>]

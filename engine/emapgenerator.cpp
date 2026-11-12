@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "emapgenerator.h"
 
 #include "eperlinnoise.h"
@@ -320,11 +321,133 @@ void eMapGenerator::generateLakes(const eMGS& s,
     }
 }
 
-// a river starts at a side of the map without sea and winds down to the
-// sea, or to the far side if there is no sea
+// the world position of a tile: the rows are half a tile high and every
+// other row is shifted by half a tile
+void eMapGenerator::worldPos(eTileBase* const t, double& x, double& y) const {
+    x = t->dx() + 0.5*(t->dy() % 2);
+    y = 0.5*t->dy();
+}
+
+eTile* eMapGenerator::tileAt(const double x, const double y) const {
+    const int dy = std::lround(2*y);
+    if(dy < 0 || dy >= mH) return nullptr;
+    const int dx = std::lround(x - 0.5*(dy % 2));
+    if(dx < 0 || dx >= mW) return nullptr;
+    return mBoard.dtile(dx, dy);
+}
+
+// walks from the source towards the mouth, always roughly downhill on
+// the distance field, turning with the noise so the course meanders
+// like the rivers of the original maps; the walked positions are
+// returned, empty if the walk did not reach the mouth
+std::vector<std::pair<double, double>> eMapGenerator::walkRiver(
+        eTile* const source, const std::vector<int>& dist,
+        const eTileVerifier& mouth, const int seed) const {
+    using ePos = std::pair<double, double>;
+    std::vector<ePos> path;
+    double x;
+    double y;
+    worldPos(source, x, y);
+    const auto downhill = [&](eTile* const t, double& ang) {
+        eTile* best = nullptr;
+        int bestD = dist[t->dx()*mH + t->dy()];
+        for(const auto& nn : t->neighbours(nullptr)) {
+            const auto nt = static_cast<eTile*>(nn.second);
+            const int d = dist[nt->dx()*mH + nt->dy()];
+            if(d < bestD) {
+                bestD = d;
+                best = nt;
+            }
+        }
+        if(!best) return false;
+        double bx;
+        double by;
+        worldPos(best, bx, by);
+        double tx;
+        double ty;
+        worldPos(t, tx, ty);
+        ang = std::atan2(by - ty, bx - tx);
+        return true;
+    };
+    const auto wrap = [](double a) {
+        while(a > M_PI) a -= 2*M_PI;
+        while(a < -M_PI) a += 2*M_PI;
+        return a;
+    };
+    double heading;
+    if(!downhill(source, heading)) return path;
+    const ePerlinNoise turn(seed);
+    const int bw = std::max(4, mW/10);
+    const int bh = std::max(8, mH/10);
+    const double cx = 0.5*mW;
+    const double cy = 0.25*mH;
+    const int maxSteps = 6*(mW + mH);
+    const double step = 0.7;
+    for(int i = 0; i < maxSteps; i++) {
+        const auto t = tileAt(x, y);
+        if(!t) break;
+        path.push_back({x, y});
+        const int d = dist[t->dx()*mH + t->dy()];
+        if(i > 8 && (d == 0 || mouth(t) ||
+                     mSea[t->dx()*mH + t->dy()])) return path;
+        double want;
+        if(!downhill(t, want)) want = heading;
+        const double diff = wrap(want - heading);
+        // the pull towards the mouth: light on the way, firm when close
+        // or when the course has turned too far away from it
+        double pull = d < 10 ? 0.5 : 0.06;
+        if(std::abs(diff) > 0.5*M_PI) pull = 0.25;
+        heading += pull*diff;
+        // the meander
+        heading += 0.3*turn.noise(i/16., 0.5);
+        // away from the edge of the map
+        const int dx = t->dx();
+        const int dy = t->dy();
+        const bool band = dx < bw || dy < bh || dx >= mW - bw || dy >= mH - bh;
+        if(band && i > 6 && d > 10) {
+            const double toCenter = std::atan2(cy - y, cx - x);
+            heading += 0.15*wrap(toCenter - heading);
+        }
+        x += step*std::cos(heading);
+        y += step*std::sin(heading);
+    }
+    path.clear();
+    return path;
+}
+
+// water in a band along the walked positions, the width wavering a little
+void eMapGenerator::carveRiver(const std::vector<std::pair<double, double>>& path,
+                               const double halfWidth, const int seed) {
+    const ePerlinNoise wave(seed);
+    for(int i = 0; i < static_cast<int>(path.size()); i++) {
+        const double x = path[i].first;
+        const double y = path[i].second;
+        const double r = halfWidth*(1 + 0.35*wave.noise(i/12., 0.5));
+        const int dyMin = std::max(0, static_cast<int>(std::floor(2*(y - r))));
+        const int dyMax = std::min(mH - 1, static_cast<int>(std::ceil(2*(y + r))));
+        for(int dy = dyMin; dy <= dyMax; dy++) {
+            const double ty = 0.5*dy;
+            const int dxMin = std::max(0, static_cast<int>(std::floor(x - r - 1)));
+            const int dxMax = std::min(mW - 1, static_cast<int>(std::ceil(x + r + 1)));
+            for(int dx = dxMin; dx <= dxMax; dx++) {
+                const double tx = dx + 0.5*(dy % 2);
+                const double ddx = tx - x;
+                const double ddy = ty - y;
+                if(ddx*ddx + ddy*ddy > r*r) continue;
+                const auto t = mBoard.dtile(dx, dy);
+                if(!t) continue;
+                t->setTerrain(eTerrain::water);
+                mRiver[dx*mH + dy] = true;
+            }
+        }
+    }
+}
+
+// rivers like those of the original maps: wide, winding, from a side of
+// the map to the sea or to the far side, some with a tributary
 void eMapGenerator::generateRivers(const eMGS& s,
                                    const std::vector<double>& height) {
-    (void)height;
+    mRiver.assign(mW*mH, false);
     int n = count(s.fRivers);
     if(s.fRivers > 0 && n < 1) n = 1;
     if(n <= 0) return;
@@ -344,15 +467,9 @@ void eMapGenerator::generateRivers(const eMGS& s,
         if(side == 2) return dy == mH - 1;
         return dx == 0;
     };
-    const ePerlinNoise meander(mSeed + 2);
-    const auto meanderField = noiseField(meander, 25., 3);
-    const int bw = std::max(4, mW/10);
-    const int bh = std::max(8, mH/10);
-    const auto inBand = [&](eTileBase* const t) {
-        const int dx = t->dx();
-        const int dy = t->dy();
-        return dx < bw || dy < bh || dx >= mW - bw || dy >= mH - bh;
-    };
+    const auto seaDist = distanceTo([this](eTileBase* const t) {
+        return static_cast<bool>(mSea[t->dx()*mH + t->dy()]);
+    }, mW + mH);
     for(int i = 0; i < n; i++) {
         // mostly from the side across from the sea, so the river crosses
         // the land instead of running along the shore
@@ -363,28 +480,15 @@ void eMapGenerator::generateRivers(const eMGS& s,
                landSides.end()) side = across;
         }
         const int farSide = (side + 2) % 4;
-        // steps to the mouth: the sea, or the far side of the map
-        const auto target = [&](eTileBase* const t) {
-            if(toSea) return static_cast<bool>(mSea[t->dx()*mH + t->dy()]);
+        const bool farIsLand = std::find(landSides.begin(), landSides.end(),
+                                         farSide) != landSides.end();
+        // to the sea, or now and then right across the map
+        const bool acrossMap = !toSea || (farIsLand && rand(3) == 0);
+        const auto mouth = [&, acrossMap, farSide](eTileBase* const t) {
+            if(!acrossMap) return static_cast<bool>(mSea[t->dx()*mH + t->dy()]);
             return onSide(t, farSide);
         };
-        const auto dist = distanceTo(target, mW + mH);
-        // the noise bends the way, the band along the edge pushes it in
-        std::vector<double> field(mW*mH, 0.);
-        for(const auto t : mAll) {
-            double v = dist[t->dx()*mH + t->dy()] +
-                       30.*value(meanderField, t);
-            if(inBand(t) && !target(t)) {
-                // the deeper in the band, the dearer
-                const int dx = t->dx();
-                const int dy = t->dy();
-                const int depth = std::max({bw - dx, bh - dy,
-                                            dx - (mW - 1 - bw),
-                                            dy - (mH - 1 - bh)});
-                v += 3.*depth;
-            }
-            value(field, t) = v;
-        }
+        const auto dist = distanceTo(mouth, mW + mH);
         // the source on the side, away from the corners and as far from
         // the mouth as it gets
         std::vector<eTile*> edge;
@@ -401,52 +505,44 @@ void eMapGenerator::generateRivers(const eMGS& s,
                   [&](eTile* const a, eTile* const b) {
             return dist[a->dx()*mH + a->dy()] > dist[b->dx()*mH + b->dy()];
         });
-        const auto source = edge[rand(std::max<int>(1, edge.size()/4))];
-        // downhill on the bent distance, never back, until the mouth
-        std::vector<bool> visited(mW*mH, false);
-        std::vector<eTile*> path{source};
-        visited[source->dx()*mH + source->dy()] = true;
-        eTile* t = source;
-        const int maxSteps = 4*(mW + mH);
-        while(!target(t) && static_cast<int>(path.size()) < maxSteps) {
-            eTile* best = nullptr;
-            double bestV = 1e18;
-            for(const auto& nn : t->neighbours(nullptr)) {
-                const auto nt = static_cast<eTile*>(nn.second);
-                if(visited[nt->dx()*mH + nt->dy()]) continue;
-                if(onEdge(nt) && !target(nt)) continue;
-                const double v = value(field, nt);
-                if(v < bestV) {
-                    bestV = v;
-                    best = nt;
-                }
-            }
-            if(!best) break;
-            t = best;
-            visited[t->dx()*mH + t->dy()] = true;
-            path.push_back(t);
+        const auto source = edge[rand(std::max<int>(1, edge.size()/3))];
+        const auto path = walkRiver(source, dist, mouth, mSeed + 100 + 7*i);
+        if(path.empty()) continue;
+        // the main river is five to nine tiles wide
+        const double halfWidth = 2.5 + 0.5*rand(5);
+        carveRiver(path, halfWidth, mSeed + 200 + 7*i);
+        const auto endTile = tileAt(path.back().first, path.back().second);
+        source->addBanner(std::make_shared<eRiverEntryPoint>(0, source, mBoard));
+        if(endTile) {
+            endTile->addBanner(std::make_shared<eRiverExitPoint>(0, endTile, mBoard));
         }
-        if(!target(t)) continue;
-        // the river is about three tiles wide
-        for(const auto pt : path) {
-            pt->setTerrain(eTerrain::water);
-            for(const auto& nn : pt->neighbours(nullptr)) {
-                const auto nt = static_cast<eTile*>(nn.second);
-                if(onEdge(nt)) continue;
-                const auto o = nn.first;
-                const bool straight = o == eOrientation::right ||
-                                      o == eOrientation::left ||
-                                      o == eOrientation::top ||
-                                      o == eOrientation::bottom;
-                if(straight || rand(3) == 0) {
-                    nt->setTerrain(eTerrain::water);
-                }
+        // a tributary from the higher land some way off joins it
+        if(rand(5) < 3) {
+            const auto riverDist = distanceTo([this](eTileBase* const t) {
+                return static_cast<bool>(mRiver[t->dx()*mH + t->dy()]);
+            }, 80);
+            std::vector<eTile*> springs;
+            for(const auto t : mAll) {
+                if(!isLand(t) || onEdge(t)) continue;
+                const int rd = riverDist[t->dx()*mH + t->dy()];
+                if(rd < 30 || rd > 70) continue;
+                if(seaDist[t->dx()*mH + t->dy()] < 15) continue;
+                springs.push_back(t);
             }
+            if(springs.empty()) continue;
+            std::sort(springs.begin(), springs.end(),
+                      [&](eTile* const a, eTile* const b) {
+                return value(height, a) > value(height, b);
+            });
+            const auto spring = springs[rand(std::max<int>(1, springs.size()/3))];
+            const auto toRiver = [this](eTileBase* const t) {
+                return static_cast<bool>(mRiver[t->dx()*mH + t->dy()]);
+            };
+            const auto tpath = walkRiver(spring, riverDist, toRiver,
+                                         mSeed + 300 + 7*i);
+            if(tpath.empty()) continue;
+            carveRiver(tpath, 1.2 + 0.5*rand(3), mSeed + 400 + 7*i);
         }
-        const auto entry = std::make_shared<eRiverEntryPoint>(0, source, mBoard);
-        source->addBanner(entry);
-        const auto exit = std::make_shared<eRiverExitPoint>(0, t, mBoard);
-        t->addBanner(exit);
     }
 }
 
@@ -545,14 +641,15 @@ void eMapGenerator::generateForest(const eMGS& s) {
 void eMapGenerator::generateFertile(const eMGS& s) {
     if(s.fFertile <= 0) return;
     const ePerlinNoise noise(mSeed + 5);
-    auto field = noiseField(noise, 15., 3);
-    // by the rivers and lakes, not along the sea shore
+    auto field = noiseField(noise, 30., 3);
+    // in large patches, the more by the rivers and lakes, not along the
+    // sea shore
     const auto waterDist = distanceTo([this](eTileBase* const t) {
         return isWater(t) && !mSea[t->dx()*mH + t->dy()];
-    }, 8);
+    }, 12);
     for(const auto t : mAll) {
         const int d = waterDist[t->dx()*mH + t->dy()];
-        if(d <= 8) value(field, t) += 0.6 + 0.6/(1 + d);
+        if(d <= 12) value(field, t) += 0.25 + 0.25/(1 + d);
     }
     const double frac = 0.01*s.fFertile*mTiles/
                         std::max(1., double(std::count_if(
@@ -599,10 +696,15 @@ void eMapGenerator::generateOre(const eMGS& s) {
         {s.fMarble, eTerrain::marble},
         {s.fOrichalc, eTerrain::orichalc}};
     auto ps = patches(isStones);
-    // the medium sized ones, 8 to 40 tiles
+    // the medium sized ones, 8 to 40 tiles, away from the edge of the map
     std::vector<std::vector<eTile*>> fit;
     for(auto& p : ps) {
-        if(p.size() >= 8 && p.size() <= 40) fit.push_back(p);
+        if(p.size() < 8 || p.size() > 40) continue;
+        bool edge = false;
+        for(const auto t : p) {
+            if(onEdge(t)) edge = true;
+        }
+        if(!edge) fit.push_back(p);
     }
     eRand::randomShuffle(fit);
     int next = 0;

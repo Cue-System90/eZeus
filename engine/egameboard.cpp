@@ -574,6 +574,7 @@ void eGameBoard::eMarbleTiles::addWithNeighbours(eTile* const tile) {
     for(int x = -1; x <= 1; x++) {
         for(int y = -1; y <= 1; y++) {
             const auto n = tile->tileRel<eTile>(x, y);
+            if(!n) return; // marble at the edge of the map
             const auto terr = n->terrain();
             if(terr != eTerrain::marble) return;
             const bool c = contains(n);

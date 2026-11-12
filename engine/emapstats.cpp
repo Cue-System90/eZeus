@@ -274,11 +274,16 @@ void eMapStats::sRun(const std::string& path) {
                                              eFsPath::sPath(pak)).stem());
         const auto c = std::make_shared<eCampaign>();
         c->readPak(name, pak);
+        // with a single adventure also a picture of each board
+        const bool single = paks.size() == 1;
         sPrint(name, "parent", c->parentCityBoard());
+        if(single) sWriteImage(c->parentCityBoard(), "mapstats-parent.ppm");
         for(int i = 0; i < 4; i++) {
             auto& cb = c->colonyBoard(i);
             if(cb.width() <= 1) continue;
-            sPrint(name, "colony" + std::to_string(i), cb);
+            const auto bn = "colony" + std::to_string(i);
+            sPrint(name, bn, cb);
+            if(single) sWriteImage(cb, "mapstats-" + bn + ".ppm");
         }
     }
 }
